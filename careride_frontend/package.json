@@ -16,7 +16,6 @@
     "@fullcalendar/timegrid": "^5.3.1",
     "@fullcalendar/vue": "^5.3.1",
     "@vue-stripe/vue-stripe": "^4.4.4",
-    "@vue/composition-api": "^1.7.0",
     "apexcharts": "^3.21.0",
     "axios": "^0.21.1",
     "bootstrap": "^4.5.2",
@@ -34,7 +33,7 @@
     "text-mask-addons": "^3.8.0",
     "v-click-outside": "^3.1.2",
     "v-mask": "^2.2.3",
-    "vue": "^2.6.12",
+    "vue": "2.7.16",
     "vue-apexcharts": "1.6.0",
     "vue-awesome-countdown": "^1.1.4",
     "vue-c3": "^1.2.11",
@@ -67,12 +66,14 @@
     "vuex-router-sync": "^5.0.0"
   },
   "devDependencies": {
+    "@babel/plugin-transform-nullish-coalescing-operator": "^7.24.7",
+    "@babel/plugin-transform-optional-chaining": "^7.24.8",
     "@vue/cli-plugin-babel": "^4.5.0",
     "@vue/cli-plugin-router": "~4.5.0",
     "@vue/cli-service": "^4.5.0",
-    "sass": "^1.77.0",
+    "sass": "1.69.5",
     "sass-loader": "^10",
-    "vue-template-compiler": "^2.6.11"
+    "vue-template-compiler": "2.7.16"
   },
   "browserslist": [
     "> 1%",

@@ -6,7 +6,6 @@ import VueTour from "vue-tour";
 import vco from "v-click-outside";
 import GmapVue from "gmap-vue";
 import "@/plugins/axios";
-import VueCompositionAPI from "@vue/composition-api";
 
 import router from "@/router";
 import store from "@/store";
@@ -34,7 +33,6 @@ import VueDraggable from "vue-draggable";
 Vue.use(VueDraggable);
 Vue.use(VueQuillEditor);
 Vue.use(VueMask);
-Vue.use(VueCompositionAPI);
 
 import VueSlideBar from "vue-slide-bar";
 
