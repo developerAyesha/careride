@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: careride-back
+  labels:
+    app.kubernetes.io/name: careride-back
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: careride-back
+  template:
+    metadata:
+      labels:
+        app: careride-back
+    spec:
+      containers:
+      - name: careride-back
+        image: chip/careride-back:latest
+        imagePullPolicy: Always
+        lifecycle:
+          postStart:
+              exec:
+                 command: ["/bin/sh", "-c", "/etc/init.d/nginx start" ]
+        volumeMounts:
+        - name: web
+          mountPath: /var/www/html/web
+      volumes:
+      - name: web
+        hostPath:
+          path: /home/kubernetes/projects/carerideback/web
+      imagePullSecrets:
+      - name: registry-secret

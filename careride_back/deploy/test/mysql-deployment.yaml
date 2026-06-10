@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-careride
+  labels:
+    app: mysql-careride
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-careride
+  template:
+    metadata:
+      labels:
+        app: mysql-careride
+    spec:
+      containers:
+      - name: mysql-careride
+        image: mysql:5.7
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 3306
+            name: mysql-careride
+        env:
+        - name: MYSQL_ROOT_PASSWORD # use only for debugging
+          value: "megapassword"
+        - name: MYSQL_DATABASE
+          value: "carerideback"
+        - name: MYSQL_USER
+          value: "admin"
+        - name: MYSQL_PASSWORD
+          value: "password"
+        volumeMounts:
+        - name: mysql-config-volume ## specify volume name
+          mountPath: /etc/mysql/conf.d/default_auth.cnf ## path to mount file
+          subPath: default_auth ## name of config
+        - name: mysql-data
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mysql-config-volume ## volume name
+        configMap:
+          name: mysql-config ## name of ConfigMap
+      - name: mysql-data
+        hostPath:
+          path: /home/kubernetes/projects/carerideback/mysql-data

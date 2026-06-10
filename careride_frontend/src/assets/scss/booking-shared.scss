@@ -1,0 +1,382 @@
+// Shared styles for all booking step pages
+// Imported via: @import "@/assets/scss/booking-shared";
+
+$teal: #199f97;
+$teal-lt: #e8f5f4;
+$teal-dk: #0d8880;
+$red: #e84040;
+$gray-border: #d6e2e1;
+$gray-text: #6b7c7b;
+
+/* ── Two-column grid: form left, map right ── */
+.bk-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bk-map-col {
+  position: sticky;
+  top: 80px;
+
+  @media (max-width: 900px) {
+    position: static;
+  }
+}
+
+.bk-map-box {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,.1);
+  min-height: 420px;
+  height: 480px;
+
+  @media (max-width: 900px) {
+    height: 280px;
+    min-height: 280px;
+  }
+}
+
+/* ── Card ── */
+.bk-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.07);
+  padding: 24px;
+
+  @media (max-width: 480px) {
+    padding: 16px;
+    border-radius: 12px;
+  }
+}
+
+.bk-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a2a2a;
+  margin: 0 0 18px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* ── Location box (pickup / drop) ── */
+.bk-loc-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f5f9f9;
+  border: 1.5px solid $gray-border;
+  border-radius: 10px;
+  padding: 8px 12px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &.focus {
+    border-color: $teal;
+    box-shadow: 0 0 0 3px rgba(25,159,151,.12);
+  }
+
+  // GmapAutocomplete inner input
+  ::v-deep input {
+    flex: 1;
+    border: none !important;
+    background: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+    font-size: 14px;
+    color: #1a2a2a;
+    font-family: 'Inter', 'Montserrat', sans-serif;
+    padding: 4px 0 !important;
+    min-width: 0;
+    width: 100%;
+
+    &::placeholder { color: #adb8b7; }
+  }
+}
+
+.bk-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &--green { background: #3fc784; }
+  &--red   { background: $red; }
+}
+
+.bk-clear {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #adb8b7;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+
+  &:hover { color: $red; }
+
+  .material-symbols-rounded { font-size: 18px; }
+}
+
+.bk-loc-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 4px 0 4px 16px;
+  gap: 3px;
+
+  span {
+    display: block;
+    width: 2px;
+    height: 5px;
+    background: $gray-border;
+    border-radius: 1px;
+  }
+}
+
+/* ── Input ── */
+.bk-inp {
+  width: 100%;
+  border: 1.5px solid $gray-border;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-family: 'Inter', 'Montserrat', sans-serif;
+  color: #1a2a2a;
+  background: #f5f9f9;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &:focus {
+    border-color: $teal;
+    box-shadow: 0 0 0 3px rgba(25,159,151,.12);
+    background: #fff;
+  }
+
+  &::placeholder { color: #adb8b7; }
+  &[disabled] { opacity: 0.5; cursor: not-allowed; }
+}
+
+.bk-inp-wrap {
+  position: relative;
+  flex: 1;
+
+  .bk-inp { padding-right: 38px; }
+}
+
+.bk-inp-ico {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #adb8b7;
+  pointer-events: none;
+}
+
+// vue2-datepicker overrides
+::v-deep .mx-input-wrapper {
+  .mx-input {
+    width: 100%;
+    border: 1.5px solid $gray-border;
+    border-radius: 10px;
+    padding: 10px 38px 10px 14px !important;
+    font-size: 14px;
+    font-family: 'Inter', 'Montserrat', sans-serif;
+    color: #1a2a2a;
+    background: #f5f9f9;
+    outline: none;
+    box-shadow: none !important;
+    height: auto;
+
+    &:focus {
+      border-color: $teal;
+      box-shadow: 0 0 0 3px rgba(25,159,151,.12) !important;
+      background: #fff;
+    }
+
+    &::placeholder { color: #adb8b7; }
+    &[disabled] { opacity: 0.5; cursor: not-allowed; }
+  }
+  .mx-icon-calendar,
+  .mx-icon-clear { display: none; }
+}
+
+/* ── Two-column row ── */
+.bk-row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+
+  @media (max-width: 480px) { grid-template-columns: 1fr; }
+}
+
+.bk-row2-errs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 2px;
+
+  @media (max-width: 480px) { grid-template-columns: 1fr; }
+}
+
+/* ── Field wrapper ── */
+.bk-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bk-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #3a4a49;
+  font-family: 'Montserrat', sans-serif;
+
+  .req { color: $red; margin-left: 2px; }
+  .opt { color: #9aadac; font-weight: 400; font-size: 12px; }
+}
+
+/* ── Toggle buttons ── */
+.bk-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bk-tog {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1.5px solid $gray-border;
+  border-radius: 8px;
+  background: #f5f9f9;
+  color: $gray-text;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: 'Montserrat', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+
+  .material-symbols-rounded { font-size: 16px; }
+
+  &:hover {
+    border-color: $teal;
+    color: $teal;
+    background: rgba(25,159,151,.06);
+  }
+
+  &.on {
+    background: $teal;
+    border-color: $teal;
+    color: #fff;
+  }
+}
+
+/* ── Error ── */
+.bk-err {
+  font-size: 12px;
+  color: $red;
+  font-family: 'Montserrat', sans-serif;
+  min-height: 16px;
+}
+
+/* ── Actions bar (sits on the teal card-wrap background) ── */
+.bk-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  @media (max-width: 480px) {
+    flex-direction: column-reverse;
+    align-items: stretch;
+
+    .bk-btn-next,
+    .bk-btn-back { justify-content: center; width: 100%; }
+  }
+}
+
+/* Primary button — white on teal */
+.bk-btn-next {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 32px;
+  background: rgba(255,255,255,.18);
+  color: #fff;
+  border: 2px solid rgba(255,255,255,.5);
+  border-radius: 30px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: 'Montserrat', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  backdrop-filter: blur(4px);
+
+  .material-symbols-rounded { font-size: 18px; }
+
+  &:hover {
+    background: rgba(255,255,255,.28);
+    border-color: rgba(255,255,255,.8);
+  }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+/* Back button — subtle white on teal */
+.bk-btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 24px;
+  background: rgba(255,255,255,.1);
+  color: rgba(255,255,255,.85);
+  border: 1.5px solid rgba(255,255,255,.3);
+  border-radius: 30px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  .material-symbols-rounded { font-size: 18px; }
+
+  &:hover {
+    background: rgba(255,255,255,.2);
+    color: #fff;
+    border-color: rgba(255,255,255,.6);
+  }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
+
+/* ── Summary card ── */
+.bk-summary {
+  background: $teal-lt;
+  border-radius: 12px;
+  padding: 16px;
+
+  &-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(25,159,151,.12);
+    font-size: 13px;
+
+    &:last-child { border-bottom: none; }
+  }
+
+  &-label { color: $gray-text; font-weight: 500; }
+  &-value { color: #1a2a2a; font-weight: 600; text-align: right; max-width: 60%; }
+}
+
+/* ── Utilities ── */
+.mt-3 { margin-top: 16px; }
+.mt-2 { margin-top: 10px; }

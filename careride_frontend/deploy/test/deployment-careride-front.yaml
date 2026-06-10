@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: careride-front
+  labels:
+    app.kubernetes.io/name: careride-front
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: careride-front
+  template:
+    metadata:
+      labels:
+        app: careride-front
+    spec:
+      containers:
+      - name: careride-front
+        image: envoy/careride_front:latest
+        imagePullPolicy: Always
+      imagePullSecrets:
+      - name: registry-secret

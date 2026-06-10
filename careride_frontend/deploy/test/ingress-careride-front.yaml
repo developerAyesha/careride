@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+ annotations:
+   cert-manager.io/cluster-issuer: letsencrypt-prod
+ name: ingress-careride-front
+ namespace: default
+spec:
+   tls:
+   - hosts:
+     - careride.iskytest.com
+     secretName: careride-front
+   rules:
+   - host: careride.iskytest.com
+     http:
+       paths:
+       - path: /
+         backend:
+           serviceName: careride-front
+           servicePort: 80

@@ -1,0 +1,48 @@
+stages:
+  - start-environment
+  - build-image
+  - deploy-to-kubernetes
+  - redeploy-image
+variables:
+    DEPLOYMENT_NAME_TEST: careride-back
+    CONTAINER_NAME_TEST: careride-back
+start to test:
+  stage: start-environment
+  tags:
+    - kuber
+  script:
+    - git pull origin develop
+    - kubectl apply -f deploy/test/
+  only:
+    - develop
+  when:
+    manual
+build to test:
+  stage: build-image
+  tags:
+    - kuber
+  script:
+     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+     - docker build . -f ./deploy/test/dockerfile -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+  only:
+    - develop
+deploy to test:
+  stage: deploy-to-kubernetes
+  tags:
+    - kuber
+  script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+    - kubectl patch deployment $DEPLOYMENT_NAME_TEST -p '{"spec":{"template":{"spec":{"containers":[{"name":"'"$CONTAINER_NAME_TEST"'","image":"'"$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"'"}]}}}}'
+  only:
+    - develop
+redeploy to test:
+  stage: redeploy-image
+  tags:
+    - kuber
+  script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+    - kubectl patch deployment $DEPLOYMENT_NAME_TEST -p "{\"spec\":{\"template\":{\"metadata\":{\"labels\":{\"redeploy\":\"$(date+%s)\"}}}}}"
+  only:
+    - develop
+  when: manual

@@ -1,0 +1,21 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+ annotations:
+   cert-manager.io/cluster-issuer: letsencrypt-prod
+   nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+ name: ingress-carerideback
+ namespace: default
+spec:
+   tls:
+   - hosts:
+     - api.careride.iskytest.com
+     secretName: carerideback
+   rules:
+   - host: api.careride.iskytest.com
+     http:
+       paths:
+       - path: /
+         backend:
+           serviceName: careride-back
+           servicePort: 80

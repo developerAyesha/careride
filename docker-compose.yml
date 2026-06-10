@@ -1,0 +1,85 @@
+version: '3'
+
+services:
+
+    node_backend:
+        # image: ${REGISTRY_HOST}/careride_node_backend:${TAG}
+        # image: careride/node_backend
+
+        build:
+            context: ./careride_back
+            dockerfile: Dockerfile
+
+        container_name: careride_backend
+        platform: "linux/amd64"
+        restart: always
+
+        depends_on:
+            - mysql_database
+
+        ports:
+            - 3000:3000
+
+        # command: >
+        #     /bin/sh -c "knex migrate:latest && npm run start"
+        command: 
+            npm run start
+
+        volumes:
+            - logs_app_backend:/var/www/html/logs
+            - storage_app_backend:/var/www/html/storage
+
+        networks:
+            - careride_network
+
+    node_frontend:
+        # image: ${REGISTRY_HOST}/careride_node_frontend_nginx:${TAG}
+        #image: careride/node_frontend_nginx
+
+        build:
+            context: ./careride_frontend
+            dockerfile: Dockerfile
+
+        container_name: careride_frontend_nginx
+        platform: "linux/amd64"
+        restart: always
+
+        # depends_on:
+        #     - node_backend
+
+        ports:
+            - 80:80
+            - 443:443
+
+        networks:
+            - careride_network
+
+    mysql_database:
+        image: mysql:5.7
+        container_name: careride_api_db
+        platform: "linux/amd64"
+        ports:
+            - 3306:3306
+        volumes:
+            #- ./data/mysql:/var/lib/mysql
+            - mysql_data_careride:/var/lib/mysql/
+        command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8 --collation-server=utf8_general_ci
+        environment:
+            MYSQL_USER: careride_db
+            MYSQL_PASSWORD: 99hwKTJDexTWBFat
+            MYSQL_ROOT_PASSWORD: PHBGHyGuqtSYJYV8
+            MYSQL_DATABASE: careride_db
+        networks:
+            - careride_network
+
+volumes:
+    mysql_data_careride:
+#        driver_opts:
+#            backup_policy: ENABLED
+    logs_app_backend:
+    storage_app_backend:
+#    web_app_backend:
+
+networks:
+    careride_network:
+        name: careride_network

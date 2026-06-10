@@ -1,0 +1,14 @@
+export {default as PhoneIcon} from './svg/PhoneIcon.vue';
+export {default as DropIcon} from './svg/DropIcon.vue';
+export {default as PickupIcon} from './svg/PickupIcon.vue';
+export {default as OneWayIcon} from './svg/OneWayIcon.vue';
+export {default as OxygenIcon} from './svg/OxygenIcon.vue';
+export {default as StairIcon} from './svg/StairIcon.vue';
+export {default as WheelChairIcon} from './svg/WheelChairIcon.vue';
+export {default as GurneyIcon} from './svg/GurneyIcon.vue';
+export {default as RoundTripIcon} from './svg/RoundTripIcon.vue';
+export {default as LocationIcon} from './svg/LocationIcon.vue';
+export {default as MaleIcon} from './svg/MaleIcon.vue';
+export {default as FemaleIcon} from './svg/FemaleIcon.vue';
+export {default as NonBinaryIcon} from './svg/NonBinaryIcon.vue';
+export {default as PreferNotIcon} from './svg/PreferNotIcon.vue';

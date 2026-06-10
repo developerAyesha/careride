@@ -1,0 +1,124 @@
+$bk-yellow: #FF8528;
+
+/* Shared Back / Next (or primary) actions for ride booking steps */
+.bk-step-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 14px;
+  margin-top: 22px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+
+  @media (max-width: 640px) {
+    gap: 10px;
+    margin-top: 18px;
+    padding: 0 2px;
+
+    .bk-btn-back,
+    .bk-btn-next {
+      flex: 1 1 0;
+      min-width: 0;
+      justify-content: center;
+      padding: 12px 8px;
+      font-size: 13px;
+      white-space: normal;
+      line-height: 1.25;
+      min-height: 48px;
+      text-align: center;
+    }
+
+    &:not(:has(.bk-btn-back)) .bk-btn-next,
+    &:not(:has(.bk-btn-next)) .bk-btn-back {
+      flex: 0 1 auto;
+      min-width: 140px;
+      max-width: 100%;
+    }
+  }
+}
+
+.bk-btn-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 36px;
+  background: #fff;
+  color: #000;
+  border: 1.5px solid $bk-yellow;
+  border-radius: 30px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  box-sizing: border-box;
+  white-space: nowrap;
+
+  .material-symbols-rounded {
+    font-size: 18px;
+  }
+
+  &:hover:not(:disabled) {
+    background: $bk-yellow;
+    color: #fff;
+    border-color: $bk-yellow;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.bk-btn-next {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 13px 36px;
+  background: $bk-yellow;
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: 'Montserrat', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+  white-space: nowrap;
+
+  .material-symbols-rounded {
+    font-size: 18px;
+  }
+
+  &:hover:not(:disabled) {
+    background: darken($bk-yellow, 6%);
+    box-shadow: 0 4px 16px rgba(255, 133, 40, 0.4);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+}
+
+.bk-btn-next .s3-spinner-sm,
+.bk-btn-next .s5-spinner-sm {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: bk-btn-spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes bk-btn-spin {
+  to { transform: rotate(360deg); }
+}
