@@ -15,6 +15,8 @@ class Config {
 	ROOT_PATH = ROOT_PATH;
 	SERVER_PORT = envInt("SERVER_PORT", 3001);
 	SERVER_LINK = env("SERVER_LINK", "http://localhost:3001");
+	CLIENT_APP_URL = env("CLIENT_APP_URL", "http://localhost:3000");
+	ADMIN_NOTIFY_EMAIL = env("ADMIN_NOTIFY_EMAIL", "");
 	DEBUG = envInt("DEBUG", 1);
 	CORS_ORIGIN = env(
 		"CORS_ORIGIN",
@@ -64,6 +66,12 @@ class Config {
 			region: env("AWS_S3_REGION", "ap-northeast-1"),
 			accessKeyId: env("AWS_S3_ACCESS_KEY_ID"),
 			secretAccessKey: env("AWS_S3_SECRET_ACCESS_KEY"),
+		},
+		SES: {
+			region: env("AWS_SES_REGION", env("AWS_SNS_REGION", "ap-northeast-1")),
+			accessKeyId: env("AWS_SES_ACCESS_KEY_ID", env("AWS_SNS_ACCESS_KEY_ID")),
+			secretAccessKey: env("AWS_SES_SECRET_ACCESS_KEY", env("AWS_SNS_SECRET_ACCESS_KEY")),
+			fromAddress: env("AWS_SES_FROM", "Support@careride.com"),
 		},
 	};
 

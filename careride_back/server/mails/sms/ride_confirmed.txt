@@ -1,0 +1,1 @@
+CareRide: Booking #{order_id} is confirmed for {order_date}. Pickup: {point_from}.

@@ -4,6 +4,7 @@ const _ = require('lodash');
 const Decimal = require('decimal.js');
 const paylogger = require('../services/winston').paylogger;
 const Stripe = require('../services/stripe/stripe.js');
+const Notify = require('../services/notify');
 
 const TABLE = 'pay_inf';
 
@@ -54,7 +55,7 @@ class PaymentModel extends DB.ModelBase{
 		}
 
 		if (this.Fields.token != '') {
-			return {clientSecret: this.Fields.token, pk: Stripe.getPublicKey(), acc: account };
+			return {clientSecret: this.Fields.token, pk: Stripe.getPublicKey(), acc: account, notifySent: false };
 		}
 
 		const rawAmount = parseInt((new Decimal(Order.v('price') || '0')).mul(100).toFixed(0), 10);
@@ -73,7 +74,9 @@ class PaymentModel extends DB.ModelBase{
 		this.setFldJson('detail', {acc: account});
 		await this.save();
 
-		return paymentIntent;
+		await Notify.safe(Notify.paymentLinkSent, Order);
+
+		return Object.assign({}, paymentIntent, { notifySent: true });
 	}
 
 	// par = {capture_percent: int }
@@ -124,6 +127,17 @@ class PaymentModel extends DB.ModelBase{
 			throw new Error('DB_ERROR');
 		}
 
+		const order = this.Order;
+		await order.refresh();
+		await Notify.safe(Notify.paymentReceived, order);
+		await Notify.safe(Notify.rideConfirmed, order);
+	}
+
+	async eventFailed(resp) {
+		paylogger.info('eventFailed', resp);
+		const order = this.Order;
+		await order.refresh();
+		await Notify.safe(Notify.paymentFailed, order, resp.reason || resp.message || '');
 	}
 
 	async eventSucces(resp) {
@@ -220,6 +234,10 @@ module.exports.callback = async function callback(req, params) {
 		case 'PAY_OK':
 			if (!payment.id) throw new Error('PAY_API_ERROR');
 			await payment.eventSucces(resp);
+			break;
+		case 'PAY_FAIL':
+			if (!payment.id) throw new Error('PAY_API_ERROR');
+			await payment.eventFailed(resp);
 			break;
 		case 'ACCOUNT_COMPLETE':
 			await DB.Vendor.VendorUserModel.onStripeAccComplete(resp);

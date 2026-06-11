@@ -1,0 +1,1 @@
+CareRide: You accepted order #{order_id}. Pickup {order_date} from {point_from}.

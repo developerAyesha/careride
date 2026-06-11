@@ -16,7 +16,8 @@ module.exports.sendSms = async function(phone, msg) {
 
 	logger.info('sendSms', params );
 	if (!SNSCONFIG.region || !SNSCONFIG.accessKeyId || !SNSCONFIG.secretAccessKey) {
-		return;
+		logger.warn('sendSms skipped: AWS SNS credentials not configured');
+		return { ok: false, error: 'SNS_NOT_CONFIGURED' };
 	}
 
 	const snsClient = new SNSClient({
@@ -26,11 +27,14 @@ module.exports.sendSms = async function(phone, msg) {
 			secretAccessKey: SNSCONFIG.secretAccessKey,
 		}
 	})
-	const publish = await snsClient.send(new PublishCommand(params));
-
-	logger.info('publish', publish);
-
-	return true;
+	try {
+		const publish = await snsClient.send(new PublishCommand(params));
+		logger.info('publish', publish);
+		return { ok: true };
+	} catch (e) {
+		logger.error('sendSms failed', e);
+		return { ok: false, error: e.message || String(e) };
+	}
 };
 
 function phone2full(p) {

@@ -7,6 +7,8 @@ class Config {
     ROOT_PATH = ROOT_PATH;
     SERVER_PORT = 3000;
     SERVER_LINK = 'https://careride.iskytest.com';
+    CLIENT_APP_URL = 'https://careride.iskytest.com';
+    ADMIN_NOTIFY_EMAIL = '';
     DEBUG = 1;
     CORS_ORIGIN = "http://localhost:3000,http://localhost,http://localhost:8080,https://careride.iskytest.com";
 

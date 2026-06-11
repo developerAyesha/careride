@@ -1,0 +1,1 @@
+CareRide: Your booking #{order_id} is confirmed. Pickup {order_date} from {point_from}. We'll notify you when a provider accepts.

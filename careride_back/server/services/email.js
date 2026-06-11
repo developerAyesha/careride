@@ -40,20 +40,43 @@ async function send(msg) {
 	return info.messageId;
 }
 
+function applyVars(t, vars) {
+	vars['site'] = Config.CLIENT_APP_URL || Config.SERVER_LINK;
+	for (var prop in vars) {
+		if (vars[prop] === undefined || vars[prop] === null) vars[prop] = '';
+		t = t.split('{' + prop + '}').join(String(vars[prop]));
+	}
+	return t;
+}
+
 function renderBody(name, msg, vars) {
 	const file = mailPath + name + '.html';
 	var t = fs.readFileSync(file, 'utf8');
 	if (!t) return;
-	vars['site'] = Config.SERVER_LINK;
-
-	for (var prop in vars) {
-		t = t.replace('{' + prop + '}', vars[prop]);
-		t = t.replace('{' + prop + '}', vars[prop]);
-	}
+	t = applyVars(t, vars);
 
 	var a = t.indexOf("\n");
 	msg.subject = t.substring(0, a).trim();
 	msg.html = t.substr(a).trim();
+}
+
+function renderSms(name, vars) {
+	const file = mailPath + 'sms/' + name + '.txt';
+	var t = fs.readFileSync(file, 'utf8');
+	if (!t) return '';
+	return applyVars(t, vars).trim();
+}
+
+async function sendTemplateSes(email, templateName, vars) {
+	if (String(email).indexOf('@') < 1) return { ok: false, error: 'INVALID_EMAIL' };
+
+	const msg = {
+		to: email,
+		subject: '',
+		html: '',
+	};
+	renderBody(templateName, msg, vars);
+	return Sns.sendEmail(msg);
 }
 
 
@@ -155,9 +178,12 @@ async function sendNewOrderAdmin( opt ) {
 
 	renderBody('orderadmin', msg, vars);
 
-	await Sns.sendEmail(msg);
-
-	return true;
+	try {
+		return await Sns.sendEmail(msg);
+	} catch (err) {
+		winston.error('sendNewOrderAdmin failed: ' + err.message);
+		return { ok: false, error: err.message };
+	}
 }
 
 
@@ -166,6 +192,9 @@ async function sendNewOrderAdmin( opt ) {
 
 module.exports = {
   renderBody,
+  renderSms,
+  applyVars,
+  sendTemplateSes,
   sendResetMail,
   sendActivationMail,
   sendFeedbackMail,

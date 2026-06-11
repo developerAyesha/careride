@@ -204,6 +204,12 @@ module.exports.webhook = async function(request, params) {
 			out.pi = paymentIntent.id;
 			out.event = 'HOLD_OK';
 			break;
+		case 'payment_intent.payment_failed':
+			var failedIntent = event.data.object;
+			out.pi = failedIntent.id;
+			out.event = 'PAY_FAIL';
+			out.reason = (failedIntent.last_payment_error && failedIntent.last_payment_error.message) || 'Payment failed';
+			break;
 		case 'payment_method.attached':
 			let paymentMethod = event.data.object;
 			// Then define and call a method to handle the successful attachment of a PaymentMethod.

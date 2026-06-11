@@ -1,0 +1,1 @@
+CareRide: Booking #{order_id} has been cancelled{cancel_by_text}. Pickup was {order_date}.

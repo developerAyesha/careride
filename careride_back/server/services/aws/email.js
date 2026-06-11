@@ -39,9 +39,10 @@ module.exports.sendEmail = async function(params) {
 
   const sendEmailCommand = createSendEmailCommand(params);
 
-  logger.info('sendSms', params );
-  if (!SNSCONFIG.region || !SNSCONFIG.accessKeyId || !SNSCONFIG.secretAccessKey) {
-    return;
+  logger.info('sendEmail', { to: params.to, subject: params.subject });
+  if (!SNSCONFIG || !SNSCONFIG.region || !SNSCONFIG.accessKeyId || !SNSCONFIG.secretAccessKey) {
+    logger.warn('sendEmail skipped: AWS SES credentials not configured');
+    return { ok: false, error: 'SES_NOT_CONFIGURED' };
   }
 
   const sesClient = new SESClient({
@@ -57,12 +58,12 @@ module.exports.sendEmail = async function(params) {
     publish = await sesClient.send(sendEmailCommand);
   } catch (e) {
     logger.error("Failed to send email.", e);
-    return e;
+    return { ok: false, error: e.message || String(e) };
   }
 
   logger.info('publish', publish);
 
-  return true;
+  return { ok: true };
 };
 
 

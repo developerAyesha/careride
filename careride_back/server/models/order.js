@@ -2,8 +2,7 @@ const Config = require("./../config.js");
 const DB = require("./db.model");
 const _ = require('lodash');
 const Decimal = require('decimal.js');
-const Sms = require('../services/aws/sms');
-const mailer = require('../services/email');
+const Notify = require('../services/notify');
 const Delayjob = require('../services/delayjob');
 
 const TABLE = 'order_inf';
@@ -296,10 +295,7 @@ class OrderModel extends DB.ModelBase{
 		await this.Vendor.updateCarCount();
 		await this.Vendor.updateDriverCount();
 
-		let client = this.Client;
-		await client.refresh();
-		const smsTxt = 'Your order number '+ this.id + ' was accepted. Please log in to make a payment.';
-		Sms.sendSms(client.login, smsTxt);
+		await Notify.safe(Notify.vendorAssigned, this);
 
 	}
 	async doReject(par) {
@@ -337,6 +333,7 @@ class OrderModel extends DB.ModelBase{
 			}
 		}
 
+		await Notify.safe(Notify.rideCancelled, this, { by: 'client', reason: par.reason });
 		await this.Client.detachLastOrder({order_id: this.id});
 		await this.clearCar();
 		await this.moveHistory({status: newstatus});
@@ -351,6 +348,7 @@ class OrderModel extends DB.ModelBase{
 
 		await this.capturePayFunds({capture_percent: 0});
 
+		await Notify.safe(Notify.rideCancelled, this, { by: 'vendor', reason: par.reason });
 		await this.clearCar();
 		await this.moveHistory({status: 26});   //25=cancel vendor
 	}
@@ -366,6 +364,7 @@ class OrderModel extends DB.ModelBase{
 
 		await this.capturePayFunds({capture_percent: par.capture_percent});
 
+		await Notify.safe(Notify.rideCancelled, this, { by: 'admin', reason: par.reason });
 		await this.clearCar();
 		await this.moveHistory({status: 27});   //25=cancel admin
 	}
@@ -437,46 +436,11 @@ class OrderModel extends DB.ModelBase{
 
 
 	async sendSmsVendors() {
-		const ids = [];
-		if (this.Fields.vendor_id > 0) {
-			ids.push(this.Fields.vendor_id);
-		} else {
-			let rows = await DB.knex(TABLE_VND).where({order_id: this.Fields.id}).select();
-			for (let v of rows) {
-				ids.push(v.vendor_id);
-			}
-		}
-		if (!ids.length) return;
-
-		const vendorlist = await DB.Vendor.getList({page:0, onpage:100, id: ids});
-
-		const smsTxt = 'You have a new order '+ this.Fields.id + ' on CareRide Technologies. Please log on to accept or decline';
-		for (let v of vendorlist.items) {
-			Sms.sendSms(v.login, smsTxt);
-		}
-
+		await Notify.vendorMatched(this);
 	}
 
 	async sendNotifyAdmin() {
-		const ids = [];
-		if (this.Fields.vendor_id > 0) {
-			ids.push(this.Fields.vendor_id);
-		} else {
-			let rows = await DB.knex(TABLE_VND).where({order_id: this.Fields.id}).select();
-			for (let v of rows) {
-				ids.push(v.vendor_id);
-			}
-		}
-		if (!ids.length) return;
-
-		const filters = {page:0, onpage:100, id:ids };
-		filters.fillServices = 1;
-		filters.order = this;
-
-		const vendorlist = await DB.Vendor.getList(filters);
-
-		const staff = await DB.Staff.getUserById(1);   //admin
-		mailer.sendNewOrderAdmin( {order: this, vendors: vendorlist.items, email: staff.v('email') } );
+		await Notify.notifyAdmin(this);
 	}
 
 
@@ -564,7 +528,8 @@ async function addOrder(data) {
 		const order = await (new OrderModel()).create(data);
 		if (!order.id) throw new Error('db error');
 
-		// Non-fatal: SMS/notification failures should not block order creation
+		// Non-fatal: notification failures should not block order creation
+		try { await Notify.orderSubmitted(order); } catch (e) { console.log('orderSubmitted notify error:', e.message); }
 		try { await order.sendSmsVendors(); } catch (e) { console.log('sendSmsVendors error:', e.message); }
 		try { await order.sendNotifyAdmin(); } catch (e) { console.log('sendNotifyAdmin error:', e.message); }
 
@@ -584,7 +549,11 @@ async function notify15m(par) {
 	if (!order) return;
 	if (order.status > 0) return;
 
-	await order.sendSmsVendors();
+	try {
+		await order.sendSmsVendors();
+	} catch (e) {
+		console.log('notify15m error:', e.message);
+	}
 }
 
 

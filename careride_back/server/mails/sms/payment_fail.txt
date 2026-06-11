@@ -1,0 +1,1 @@
+CareRide: Payment failed for booking #{order_id}. Please retry: {payment_url}
