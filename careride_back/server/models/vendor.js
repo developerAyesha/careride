@@ -6,6 +6,7 @@ const DB = require("./db.model");
 const bcrypt = require('bcrypt');
 const FStorage = require('../services/filestorage');
 const Stripe = require('../services/stripe/stripe.js');
+const { formatLogin } = require('../utils/phone');
 const Sms = require('../services/aws/sms');
 
 
@@ -322,15 +323,6 @@ class VendorUserModel extends UserBase.UserBase{
 }
 module.exports.VendorUserModel = VendorUserModel;
 module.exports.TABLE = TABLE
-
-
-function formatLogin(v) {
-	v = String(v).replace( /[^0-9]/g, '');
-	if (v.length > 13) v = v.substring(v.length - 12);
-	return v;
-}
-
-
 
 
 async function getUserById(id) {

@@ -226,6 +226,7 @@ export default {
     }
 
     await this.$store.dispatch("fetchClientOrderlist");
+    if (this.orderId) this.$store.commit("setRouteData", null);
     this.loading = false;
   },
   computed: {

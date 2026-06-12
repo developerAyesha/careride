@@ -371,6 +371,7 @@
 
 <script>
 import Auth from "@/views/layouts/auth";
+import { formatLogin } from "@/helpers/phone";
 import axios from "axios";
 import urls from "@/urls";
 import Swal from "sweetalert2";
@@ -546,7 +547,7 @@ export default {
           const response = await axios({
             method: "post",
             url: urls.URL_USER_SIGNUP_1, // client/signup
-            data: { login: this.step1.login },
+            data: { login: formatLogin(this.step1.login) },
           });
           // console.log("1 sendCode(), response: ", response);
 

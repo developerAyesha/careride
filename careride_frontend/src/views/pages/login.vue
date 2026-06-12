@@ -36,7 +36,7 @@
                   class="form-control"
                   v-model="login"
                   v-mask="'+1 ##########'"
-                  placeholder="+1 ##########"
+                  placeholder="+1 9493450213 (10 digits after +1)"
                   id="login"
                   :class="{ 'is-invalid': submitted && $v.login.$error }"
                 />
@@ -118,6 +118,7 @@
 
 <script>
 import Auth from "@/views/layouts/auth";
+import { formatLogin } from "@/helpers/phone";
 import { mapActions } from "vuex";
 import { required } from "vuelidate/lib/validators";
 
@@ -159,6 +160,12 @@ export default {
     ...mapActions({
       loginAction: "login",
     }),
+    getRedirectPath() {
+      const redirect = this.$route.query.redirect;
+      if (typeof redirect !== "string") return null;
+      if (!redirect.startsWith("/") || redirect.startsWith("//")) return null;
+      return redirect;
+    },
     async handleSubmit() {
       this.submitted = true;
       this.isAuthError = false;
@@ -174,12 +181,13 @@ export default {
         try {
           const response = await this.loginAction({
             url: this.active.url,
-            login: this.login,
+            login: formatLogin(this.login),
             password: this.password,
           });
 
           if (response.data?.result) {
-            await this.$router.push(this.active.nextPage).catch(() => {});
+            const destination = this.getRedirectPath() || this.active.nextPage;
+            await this.$router.push(destination).catch(() => {});
           }
 
           this.trySubmit = false;
@@ -237,8 +245,10 @@ export default {
       // by default its first
       this.active = tab;
 
-      if (this.$route.query.tab !== this.active.key) {
-        this.$router.replace({ query: { tab: this.active.key } });
+      const query = { tab: this.active.key };
+      if (this.$route.query.redirect) query.redirect = this.$route.query.redirect;
+      if (this.$route.query.tab !== this.active.key || this.$route.query.redirect) {
+        this.$router.replace({ query });
       }
     },
   },
