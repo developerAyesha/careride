@@ -7,6 +7,7 @@ const UserBase = require("./userbase");
 const Sms = require('../services/aws/sms');
 
 const DB = require("./db.model");
+const { formatLogin } = require('../utils/phone');
 const bcrypt = require('bcrypt');
 const Decimal = require('decimal.js');
 
@@ -203,11 +204,6 @@ module.exports.UserModel = UserModel;
 module.exports.TABLE = TABLE;
 
 
-function formatLogin(v) {
-	v = String(v).replace( /[^0-9]/g, '');
-	if (v.length > 13) v = v.substring(v.length - 12);
-	return v;
-}
 function filterLoginAr(phones) {
 	const list = [];
 	if (!Array.isArray(phones) || (phones.length<1) ) return list;

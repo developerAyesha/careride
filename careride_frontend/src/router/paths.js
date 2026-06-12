@@ -48,6 +48,7 @@ export default [
     },
     redirect: {
       path: "/ride/step-1",
+      query: { fresh: "1" },
     },
   },
   {

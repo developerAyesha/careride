@@ -3,6 +3,7 @@ const _ = require('lodash');
 const { getToken, getResetToken, checkResetTokenOnExpTime } = require('../services/jwt');
 const UserBase = require("./userbase");
 const DB = require("./db.model");
+const { formatLogin } = require('../utils/phone');
 const bcrypt = require('bcrypt');
 const FStorage = require('../services/filestorage');
 
@@ -192,16 +193,6 @@ class DriverUserModel extends UserBase.UserBase{
 }
 module.exports.DriverUserModel = DriverUserModel;
 module.exports.TABLE = TABLE;
-
-
-function formatLogin(v) {
-	v = String(v).replace( /[^0-9]/g, '');
-	if (v.length > 13) v = v.substring(v.length - 12);
-	return v;
-}
-
-
-
 
 
 async function getUserById(id) {
