@@ -120,6 +120,7 @@
             v-mask="'+1 ##########'"
             placeholder="+1 ##########"
             id="profile-contact"
+            @paste="onPhonePaste"
             :class="{ 'is-invalid': submitted && $v.form.contact.$error }"
           />
           <div
@@ -304,6 +305,7 @@ import {
   between,
 } from "vuelidate/lib/validators";
 import createNumberMask from "text-mask-addons/dist/createNumberMask";
+import { pasteAsLoginDisplay } from "@/helpers/phone";
 
 export default {
   props: {
@@ -417,6 +419,10 @@ export default {
     },
   },
   methods: {
+    onPhonePaste(evt) {
+      const formatted = pasteAsLoginDisplay(evt);
+      if (formatted) this.form.contact = formatted;
+    },
     initForm() {
       if (!this.isNew) {
         this.form = {

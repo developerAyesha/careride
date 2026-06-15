@@ -1,6 +1,3 @@
-/**
- * Match backend server/utils/phone.js formatLogin for US login numbers.
- */
 export function formatLogin(v) {
   let digits = String(v == null ? "" : v).replace(/[^0-9]/g, "");
   if (!digits) return "";
@@ -14,4 +11,26 @@ export function formatLogin(v) {
   }
 
   return digits;
+}
+
+export function formatLoginDisplay(v) {
+  const digits = formatLogin(v);
+  if (!digits) return "";
+
+  const national =
+    digits.length === 11 && digits.startsWith("1")
+      ? digits.slice(1)
+      : digits.slice(-10);
+
+  if (national.length !== 10) return "";
+
+  return `+1 ${national}`;
+}
+
+export function pasteAsLoginDisplay(evt) {
+  const text = evt.clipboardData?.getData("text") || "";
+  const formatted = formatLoginDisplay(text);
+  if (!formatted) return null;
+  evt.preventDefault();
+  return formatted;
 }
