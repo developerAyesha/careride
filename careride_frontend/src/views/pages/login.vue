@@ -38,6 +38,7 @@
                   v-mask="'+1 ##########'"
                   placeholder="+1 9493450213 (10 digits after +1)"
                   id="login"
+                  @paste="onPhonePaste"
                   :class="{ 'is-invalid': submitted && $v.login.$error }"
                 />
                 <div
@@ -118,7 +119,7 @@
 
 <script>
 import Auth from "@/views/layouts/auth";
-import { formatLogin } from "@/helpers/phone";
+import { formatLogin, pasteAsLoginDisplay } from "@/helpers/phone";
 import { mapActions } from "vuex";
 import { required } from "vuelidate/lib/validators";
 
@@ -165,6 +166,10 @@ export default {
       if (typeof redirect !== "string") return null;
       if (!redirect.startsWith("/") || redirect.startsWith("//")) return null;
       return redirect;
+    },
+    onPhonePaste(evt) {
+      const formatted = pasteAsLoginDisplay(evt);
+      if (formatted) this.login = formatted;
     },
     async handleSubmit() {
       this.submitted = true;

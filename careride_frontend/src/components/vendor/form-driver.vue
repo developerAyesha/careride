@@ -37,6 +37,7 @@
               type="text"
               id="driver-login"
               class="form-control"
+              @paste="onPhonePaste"
               :readonly="!isNew"
               :class="{
                 'is-invalid': submitted && $v.form.login.$error,
@@ -318,6 +319,7 @@ import {
   requiredIf,
 } from "vuelidate/lib/validators";
 import { mapActions } from "vuex";
+import { pasteAsLoginDisplay } from "@/helpers/phone";
 
 export default {
   props: {
@@ -435,6 +437,10 @@ export default {
   },
   methods: {
     ...mapActions(["getFile"]),
+    onPhonePaste(evt) {
+      const formatted = pasteAsLoginDisplay(evt);
+      if (formatted) this.form.login = formatted;
+    },
     initForm() {
       if (!this.isNew) {
         this.form = {
