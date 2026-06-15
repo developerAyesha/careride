@@ -55,37 +55,41 @@
         </div>
 
         <!-- Date & Time -->
-        <div class="s1-row2 mt-16">
-          <div class="s1-dt-field" @click.capture="togglePickerOpen('date', $event)">
+        <div class="s1-row2 s1-row2--dt mt-16">
+          <div class="s1-dt-field">
             <date-picker
               v-model="form.pickup_date"
               :open.sync="pickupDateOpen"
               :lang="dpConfig"
+              append-to-body
               placeholder="Pickup date"
               format="MM-DD-YYYY"
               input-class="s1-dt-input"
               :disabled-date="disabledDate"
-              @open="closePicker('time')"
+              @open="onDatePickerOpen"
+              @close="onDatePickerClose"
             />
-            <span class="s1-dt-ico" aria-hidden="true">
+            <span class="s1-dt-ico" aria-hidden="true" @click="pickupDateOpen = true">
               <span class="material-symbols-rounded">calendar_month</span>
             </span>
           </div>
-          <div class="s1-dt-field" @click.capture="togglePickerOpen('time', $event)">
+          <div class="s1-dt-field">
             <date-picker
               v-model="form.pickup_time"
               :open.sync="pickupTimeOpen"
               :lang="dpConfig"
               type="time"
+              append-to-body
+              :minute-step="15"
               format="hh:mm a"
               placeholder="Pickup time"
               use12h
               input-class="s1-dt-input"
               :disabled="!form.pickup_date"
               :disabled-time="disabledTime"
-              @open="closePicker('date')"
+              @open="onTimePickerOpen"
             />
-            <span class="s1-dt-ico" aria-hidden="true">
+            <span class="s1-dt-ico" aria-hidden="true" @click="openTimePicker">
               <span class="material-symbols-rounded">schedule</span>
             </span>
           </div>
@@ -260,9 +264,11 @@ export default {
       dpConfig: { formatLocale: { firstDayOfWeek: 1 }, monthBeforeYear: false },
       pickupDateOpen: false,
       pickupTimeOpen: false,
+      dateBounds: null,
+      minPickupTimeMs: null,
       form: {
-        pickup_date: "",
-        pickup_time: "",
+        pickup_date: null,
+        pickup_time: null,
         roundtrip: 0,
         cartype: carTypes[0],
         instruction: "",
@@ -287,6 +293,7 @@ export default {
   },
   created() {
     if (this.$route.params.msg) this.msg = this.$route.params.msg;
+    this.refreshDateBounds();
     this.initForm();
   },
   computed: {
@@ -302,33 +309,65 @@ export default {
     },
   },
   methods: {
-    togglePickerOpen(field, evt) {
-      const openKey = field === "date" ? "pickupDateOpen" : "pickupTimeOpen";
-      if (!this[openKey]) return;
-      this[openKey] = false;
-      evt.stopPropagation();
-      evt.preventDefault();
+    onDatePickerOpen() {
+      this.pickupTimeOpen = false;
+      this.refreshDateBounds();
     },
-    closePicker(field) {
-      if (field === "date") this.pickupDateOpen = false;
-      else this.pickupTimeOpen = false;
+    onDatePickerClose() {
+      this.refreshMinPickupTime();
+    },
+    onTimePickerOpen() {
+      this.pickupDateOpen = false;
+      this.refreshMinPickupTime();
+    },
+    openTimePicker() {
+      if (!this.form.pickup_date) return;
+      this.pickupTimeOpen = true;
+    },
+    refreshDateBounds() {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const max = new Date(today.getTime() + 5 * 86400000);
+      max.setHours(0, 0, 0, 0);
+      this.dateBounds = { todayMs: today.getTime(), maxMs: max.getTime() };
+    },
+    refreshMinPickupTime() {
+      const pd = this.form.pickup_date;
+      if (!pd) {
+        this.minPickupTimeMs = null;
+        return;
+      }
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const target = new Date(pd);
+      target.setHours(0, 0, 0, 0);
+      if (today.getTime() !== target.getTime()) {
+        this.minPickupTimeMs = null;
+        return;
+      }
+      const min = new Date();
+      min.setSeconds(0, 0);
+      min.setMilliseconds(0);
+      min.setHours(min.getHours() + 1);
+      this.minPickupTimeMs = min.getTime();
     },
     toggleService(c) {
       const i = this.form.services.indexOf(c);
       i === -1 ? this.form.services.push(c) : this.form.services.splice(i, 1);
     },
     disabledDate(date) {
-      const today = new Date(); today.setHours(0,0,0,0); date.setHours(0,0,0,0);
-      return today > date || date > new Date(today.getTime() + 5 * 86400000);
+      if (!this.dateBounds) this.refreshDateBounds();
+      const d = new Date(date);
+      d.setHours(0, 0, 0, 0);
+      const ms = d.getTime();
+      return ms < this.dateBounds.todayMs || ms > this.dateBounds.maxMs;
     },
     disabledTime(date) {
-      const today = new Date(), target = new Date(this.form.pickup_date);
-      today.setHours(0,0,0,0); target.setHours(0,0,0,0);
-      if (today.getTime() === target.getTime()) {
-        const min = new Date(); min.setSeconds(0,0); min.setHours(min.getHours()+1);
-        date.setSeconds(0,0); return date < min;
-      }
-      return false;
+      if (this.minPickupTimeMs == null) return false;
+      const d = new Date(date);
+      d.setSeconds(0, 0);
+      d.setMilliseconds(0);
+      return d.getTime() < this.minPickupTimeMs;
     },
     getAutocompleteComponent(id) {
       const ref = this.$refs[`transitPoint-${id}`];
@@ -407,10 +446,13 @@ export default {
       this.wait = false;
       this.gpsLoading = false;
       this.submitted = false;
+      this.pickupDateOpen = false;
+      this.pickupTimeOpen = false;
+      this.minPickupTimeMs = null;
       this.msg = { has: false, type: "", text: "" };
       this.form = {
-        pickup_date: "",
-        pickup_time: "",
+        pickup_date: null,
+        pickup_time: null,
         roundtrip: 0,
         cartype: this.carTypes[0],
         instruction: "",
@@ -429,6 +471,15 @@ export default {
       if (d.roundtrip !== undefined) this.form.roundtrip = d.roundtrip;
       if (d.instruction) this.form.instruction = d.instruction;
       if (d.services) this.form.services = Object.keys(d.services).filter(s => d.services[s]);
+
+      if (d.orderAt) {
+        const orderAt = new Date(d.orderAt);
+        if (!Number.isNaN(orderAt.getTime())) {
+          this.form.pickup_date = new Date(orderAt.getFullYear(), orderAt.getMonth(), orderAt.getDate());
+          this.form.pickup_time = new Date(orderAt);
+          this.refreshMinPickupTime();
+        }
+      }
 
       const ets = d.p_dat?.ets;
       if (ets && ets.length >= 2) {
@@ -578,7 +629,13 @@ export default {
   },
   watch: {
     "form.pickup_date"(v) {
-      if (!v) this.pickupTimeOpen = false;
+      if (!v) {
+        this.pickupTimeOpen = false;
+        this.form.pickup_time = null;
+        this.minPickupTimeMs = null;
+        return;
+      }
+      this.refreshMinPickupTime();
     },
     waypointFields: {
       deep: true,
@@ -664,9 +721,14 @@ $tog-off-bg: #F4F4F4;
   min-width: 0;
   width: 100%;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
 
   @media (max-width: 480px) { padding: 20px 16px; border-radius: 20px; }
+}
+
+.s1-row2--dt {
+  position: relative;
+  z-index: 3;
 }
 
 .s1-card-title {
@@ -844,7 +906,8 @@ $tog-off-bg: #F4F4F4;
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: pointer;
   z-index: 2;
   color: $text-dark;
 
