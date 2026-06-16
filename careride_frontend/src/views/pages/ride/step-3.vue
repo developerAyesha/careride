@@ -312,7 +312,7 @@ export default {
 
         await this.$store.dispatch("fetchClientOrderlist");
         this.$store.commit("setRouteData", null);
-        this.$router.push(`/ride/step-4?id=${orderId}`);
+        this.$router.push(`/ride/step-4?id=${orderId}&notified=1`);
       } catch (err) {
         const status = err.response?.status;
         const detail = err.response?.data?.detail || err.response?.data?.error || err.message;
