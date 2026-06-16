@@ -222,7 +222,7 @@ import BookingLayout from "@/views/layouts/booking";
 import BkSteps from "@/components/booking/BkSteps";
 import { mapGetters } from "vuex";
 import DirectionsRenderer from "@/components/DirectionsRenderer";
-import { getCity } from "@/helpers";
+import { getCity, getCityLabel } from "@/helpers";
 import { carTypes, mapFields } from "@/components/data";
 import DatePicker from "vue2-datepicker";
 import { required } from "vuelidate/lib/validators";
@@ -483,14 +483,15 @@ export default {
 
       const ets = d.p_dat?.ets;
       if (ets && ets.length >= 2) {
-        const makePoint = (et) => ({
+        const makePoint = (et, fallbackCity = "") => ({
+          _fallbackCity: et.city || fallbackCity || "",
           address_components: [],
           utc_offset_minutes: et.utc_offset_minutes || 0,
           formatted_address: et.location,
           geometry: { location: { lat: () => et.position.lat, lng: () => et.position.lng } },
         });
-        this.waypointFields[0].point = makePoint(ets[0]);
-        this.waypointFields[1].point = makePoint(ets[ets.length - 1]);
+        this.waypointFields[0].point = makePoint(ets[0], d.pfrom_city);
+        this.waypointFields[1].point = makePoint(ets[ets.length - 1], d.pto_city);
         this.center = { ...ets[0].position };
         this.$nextTick(() => {
           this.setAutocompleteValue(this.waypointFields[0].id, ets[0].location || "");
@@ -594,6 +595,21 @@ export default {
         startLookup();
       }
     },
+    buildWaypointLocation(w) {
+      if (!w.point) return null;
+      const latLng = this.getPlaceLatLng(w.point);
+      if (!latLng) return null;
+      const city = getCity(w.point);
+      const cityLabel = getCityLabel(w.point);
+      return {
+        id: w.id,
+        location: w.point.formatted_address,
+        utc_offset_minutes: city.utc_offset_minutes,
+        city: cityLabel,
+        position: { lat: latLng.lat, lng: latLng.lng },
+        stopover: false,
+      };
+    },
     handleSubmit() {
       this.submitted = true;
       this.$v.$touch();
@@ -604,6 +620,22 @@ export default {
       }
       const pfrom = this.waypointsLocation[0];
       const pto   = this.waypointsLocation[this.waypointsLocation.length - 1];
+      if (!pfrom.city || pfrom.city.trim().length < 2) {
+        this.msg = {
+          has: true,
+          type: "danger",
+          text: "Could not determine pickup city. Please re-select pickup from the address suggestions.",
+        };
+        return;
+      }
+      if (!pto.city || pto.city.trim().length < 2) {
+        this.msg = {
+          has: true,
+          type: "danger",
+          text: "Could not determine dropoff city. Please re-select dropoff from the address suggestions.",
+        };
+        return;
+      }
       let distance = 0;
       if (this.route?.routes?.[0]?.legs) {
         this.route.routes[0].legs.forEach(l => distance += l.distance.value);
@@ -642,18 +674,8 @@ export default {
       handler() {
         const locs = [];
         this.waypointFields.forEach(w => {
-          if (w.point) {
-            const latLng = this.getPlaceLatLng(w.point);
-            if (!latLng) return;
-            const city = getCity(w.point);
-            locs.push({
-              id: w.id, location: w.point.formatted_address,
-              utc_offset_minutes: city.utc_offset_minutes,
-              city: city.name.join(", "),
-              position: { lat: latLng.lat, lng: latLng.lng },
-              stopover: false,
-            });
-          }
+          const loc = this.buildWaypointLocation(w);
+          if (loc) locs.push(loc);
         });
         if (JSON.stringify(this.waypointsLocation) !== JSON.stringify(locs)) {
           this.waypointsLocation = [...locs];
