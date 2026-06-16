@@ -1,5 +1,5 @@
 const DB = require("./db.model");
-const SmsService = require('../services/sms');
+const SmsService = require('../services/aws/sms');
 const { dateFormat } = require('../utils/dateformat');
 
 
@@ -120,6 +120,7 @@ async function sendSms(phone, msg) {
 		}
 
 	} catch (er) {
+		console.log('sendSms error:', er.message || er);
 		throw new Error('SMS_FAILD');
 	}
 }

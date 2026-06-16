@@ -1,0 +1,15 @@
+Your CareRide booking #{order_id} is confirmed
+<div style="font-family: Arial, sans-serif; color: #1a2a2a; max-width: 600px;">
+  <p>Hi {client_name},</p>
+  <p>Thank you for booking with CareRide. We have received your ride request and are matching you with a provider.</p>
+  <p><strong>Booking #{order_id}</strong></p>
+  <ul style="list-style: none; padding: 0;">
+    <li><strong>Pickup:</strong> {point_from}</li>
+    <li><strong>Destination:</strong> {point_to}</li>
+    <li><strong>Date &amp; time:</strong> {order_date}</li>
+    <li><strong>Estimated price:</strong> ${price}</li>
+  </ul>
+  <p>You will receive another message once a provider accepts your ride.</p>
+  <p><a href="{site}/ride/step-4">View your booking</a></p>
+  <p style="color: #666; font-size: 12px;">CareRide Technologies</p>
+</div>

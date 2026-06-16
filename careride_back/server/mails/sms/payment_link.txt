@@ -1,0 +1,1 @@
+CareRide: Complete payment for booking #{order_id} (${price}): {payment_url}

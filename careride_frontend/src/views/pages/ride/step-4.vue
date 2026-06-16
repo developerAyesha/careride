@@ -17,6 +17,14 @@
         You'll be notified as soon as your ride is confirmed.
       </p>
 
+      <!-- Booking confirmation sent -->
+      <div v-if="notifyMsg" class="s4-notify-banner">
+        <div class="s4-notify-inner">
+          <span class="material-symbols-rounded s4-notify-ico">mark_email_read</span>
+          <p class="mb-0">{{ notifyMsg }}</p>
+        </div>
+      </div>
+
       <!-- Checklist panel -->
       <div class="s4-checklist-panel">
         <p class="s4-panel-heading mb-3">Our team is currently...</p>
@@ -74,6 +82,7 @@ import BkSteps from "@/components/booking/BkSteps";
 import { mapGetters } from "vuex";
 import axios from "axios";
 import urls from "@/urls";
+import { formatLoginDisplay } from "@/helpers/phone";
 
 export default {
   metaInfo() { return { title: this.$appConfig.title + " | Book a Ride – Matching" }; },
@@ -83,6 +92,7 @@ export default {
       orderId: null,
       pollTimer: null,
       errorMsg: "",
+      showNotifyBanner: false,
       pollCount: 0,
       MAX_POLLS: 60,
       checklist: [
@@ -111,6 +121,7 @@ export default {
   },
   created() {
     this.orderId = this.$route.query?.id;
+    this.showNotifyBanner = this.$route.query?.notified === "1";
     if (!this.orderId) return;
     this.pollStatus();
     this.startPolling();
@@ -119,12 +130,29 @@ export default {
     this.stopPolling();
   },
   computed: {
-    ...mapGetters(["client"]),
+    ...mapGetters(["client", "user"]),
     order() {
       return this.client.orderlist?.items?.find(o => String(o.id) === String(this.orderId)) || null;
     },
+    notifyMsg() {
+      if (!this.showNotifyBanner) return "";
+      const email = String(this.user?.email || "").trim();
+      const phone = formatLoginDisplay(this.user?.login);
+      const parts = [];
+      if (email.includes("@")) parts.push(this.maskEmail(email));
+      if (phone) parts.push(phone);
+      if (parts.length) {
+        return `We've sent your booking confirmation to ${parts.join(" and ")}.`;
+      }
+      return "We've sent your booking confirmation by email and text.";
+    },
   },
   methods: {
+    maskEmail(email) {
+      const at = email.indexOf("@");
+      if (at < 2) return email;
+      return email[0] + "***" + email.slice(at);
+    },
     startPolling() {
       this.pollTimer = setInterval(this.pollStatus, 3000);
     },
@@ -299,6 +327,39 @@ $text-muted: #747574;
 .s4-check-desc {
   font-size: 14px;
   color: $text-muted;
+  line-height: 1.5;
+  font-family: 'Inter', 'Montserrat', sans-serif;
+}
+
+/* ── Notify banner ── */
+.s4-notify-banner {
+  margin: 0 auto 20px;
+  max-width: 650px;
+  background: #edf9f7;
+  border-radius: 14px;
+  border: 1px solid rgba(25, 159, 151, 0.25);
+  padding: 14px 18px;
+}
+
+.s4-notify-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  text-align: left;
+}
+
+.s4-notify-ico {
+  font-size: 24px;
+  color: $teal;
+  flex-shrink: 0;
+  font-variation-settings: 'FILL' 1;
+}
+
+.s4-notify-banner p {
+  font-size: 13px;
+  color: #2d4a48;
+  margin: 0;
   line-height: 1.5;
   font-family: 'Inter', 'Montserrat', sans-serif;
 }

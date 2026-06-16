@@ -1,0 +1,1 @@
+CareRide: Payment received for booking #{order_id}. Your ride on {order_date} is confirmed.

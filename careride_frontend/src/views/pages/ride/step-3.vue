@@ -143,6 +143,7 @@ import { mapGetters } from "vuex";
 import { carTypes } from "@/components/data";
 import axios from "axios";
 import urls from "@/urls";
+import { resolveCityLabel } from "@/helpers";
 
 // Last-resort fallback only if both API calls fail completely
 const RATE = { 1: { base: 80, mile: 5.5 }, 2: { base: 100, mile: 6.5 } };
@@ -269,6 +270,17 @@ export default {
           ...this.routeData.addData,
           ...this.routeData.formData,
         };
+        payload.pfrom_city = resolveCityLabel(payload.pfrom_city, payload.pfrom_addr);
+        payload.pto_city = resolveCityLabel(payload.pto_city, payload.pto_addr);
+        if (!payload.pfrom_city || payload.pfrom_city.length < 2 || !payload.pto_city || payload.pto_city.length < 2) {
+          this.msg = {
+            has: true,
+            type: "danger",
+            text: "Pickup or dropoff city is missing. Please go back to step 1 and re-select your locations from the suggestions.",
+          };
+          this.wait = false;
+          return;
+        }
         if (this.vendorlist.length) {
           payload.vendor_ids = this.vendorlist.map(v => v.id);
         }
@@ -300,7 +312,7 @@ export default {
 
         await this.$store.dispatch("fetchClientOrderlist");
         this.$store.commit("setRouteData", null);
-        this.$router.push(`/ride/step-4?id=${orderId}`);
+        this.$router.push(`/ride/step-4?id=${orderId}&notified=1`);
       } catch (err) {
         const status = err.response?.status;
         const detail = err.response?.data?.detail || err.response?.data?.error || err.message;

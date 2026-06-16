@@ -9,6 +9,7 @@ const { CustomError } = require('../utils/errors');
 const withAuth = require('../middlewares/auth');
 
 const Models = require("../models");
+const Notify = require('../services/notify');
 
 
 // DEV ONLY: simulate Stripe hold webhook after client redirect from Stripe
@@ -21,6 +22,11 @@ router.post('/dev-hold',
 			await Models.knex('order_inf')
 				.where({ id: orderId, status: 1 })
 				.update({ status: 3, payAt: new Date(), updatedAt: new Date() });
+			const order = await Models.Order.getById(orderId);
+			if (order) {
+				await Notify.safe(Notify.paymentReceived, order);
+				await Notify.safe(Notify.rideConfirmed, order);
+			}
 			res.status(200).json({ result: 1 });
 		} catch (er) {
 			throw new CustomError(403, er.message);

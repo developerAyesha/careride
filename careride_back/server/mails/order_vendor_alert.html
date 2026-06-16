@@ -1,0 +1,15 @@
+New CareRide booking request #{order_id}
+<div style="font-family: Arial, sans-serif; color: #1a2a2a; max-width: 600px;">
+  <p>Hello {vendor_name},</p>
+  <p>A new ride request is available on CareRide. Please log in to accept or decline.</p>
+  <p><strong>Order #{order_id}</strong></p>
+  <ul style="list-style: none; padding: 0;">
+    <li><strong>Pickup:</strong> {point_from}</li>
+    <li><strong>Destination:</strong> {point_to}</li>
+    <li><strong>Date &amp; time:</strong> {order_date}</li>
+    <li><strong>Distance:</strong> {distance} miles</li>
+    <li><strong>Quoted price:</strong> ${price}</li>
+  </ul>
+  <p><a href="{site}">Log in to CareRide</a></p>
+  <p style="color: #666; font-size: 12px;">CareRide Technologies</p>
+</div>

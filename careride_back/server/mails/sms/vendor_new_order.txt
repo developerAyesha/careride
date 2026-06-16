@@ -1,0 +1,1 @@
+CareRide: New order #{order_id}. Pickup {order_date}. Log in to accept or decline: {site}
