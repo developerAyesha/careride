@@ -142,7 +142,7 @@ export default {
       drawerOpen: false,
       navItems: [
         { id: 0, label: 'Home',             link: '/',            match: null },
-        { id: 1, label: 'Book a Ride',      link: '/ride/step-1', match: '/ride' },
+        { id: 1, label: 'Book a Ride',      link: '/ride/step-1?fresh=1', match: '/ride' },
         { id: 2, label: 'About us',         link: '/about',       match: null },
         { id: 3, label: 'FAQ',              link: '/faq',         match: null },
         { id: 4, label: 'Become a partner', link: '/partner',     match: null },

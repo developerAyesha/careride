@@ -254,7 +254,7 @@ export default {
     },
     goToLogin() {
       this.showLoginModal = false;
-      this.$router.push({ path: "/login", query: { redirect: "/ride/step-3" } });
+      this.$router.push({ path: "/login", query: { redirect: "/ride/step-3", tab: "user" } });
     },
     async handleSubmit() {
       if (!this.authorized) {
@@ -299,6 +299,7 @@ export default {
         if (!orderId) throw new Error("Order ID missing from response");
 
         await this.$store.dispatch("fetchClientOrderlist");
+        this.$store.commit("setRouteData", null);
         this.$router.push(`/ride/step-4?id=${orderId}`);
       } catch (err) {
         const status = err.response?.status;

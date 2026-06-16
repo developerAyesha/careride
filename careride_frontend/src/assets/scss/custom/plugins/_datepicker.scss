@@ -32,6 +32,7 @@
   box-shadow: $box-shadow-lg !important;
   border: none !important;
   background-color: lighten($dropdown-bg, 2%) !important;
+  z-index: 2100 !important;
 }
 
 .mx-panel-date td,

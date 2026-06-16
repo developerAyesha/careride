@@ -49,43 +49,47 @@
               />
             </div>
           </div>
-          <button class="s1-loc-btn" @click="useGpsLocation" type="button" title="Use current location">
+          <button class="s1-loc-btn" @click="useGpsLocation" type="button" title="Use current location" :disabled="gpsLoading">
            <LocationIcon class="s1-pin" :width="24" :height="24" />
           </button>
         </div>
 
         <!-- Date & Time -->
-        <div class="s1-row2 mt-16">
-          <div class="s1-dt-field" @click.capture="togglePickerOpen('date', $event)">
+        <div class="s1-row2 s1-row2--dt mt-16">
+          <div class="s1-dt-field">
             <date-picker
               v-model="form.pickup_date"
               :open.sync="pickupDateOpen"
               :lang="dpConfig"
+              append-to-body
               placeholder="Pickup date"
               format="MM-DD-YYYY"
               input-class="s1-dt-input"
               :disabled-date="disabledDate"
-              @open="closePicker('time')"
+              @open="onDatePickerOpen"
+              @close="onDatePickerClose"
             />
-            <span class="s1-dt-ico" aria-hidden="true">
+            <span class="s1-dt-ico" aria-hidden="true" @click="pickupDateOpen = true">
               <span class="material-symbols-rounded">calendar_month</span>
             </span>
           </div>
-          <div class="s1-dt-field" @click.capture="togglePickerOpen('time', $event)">
+          <div class="s1-dt-field">
             <date-picker
               v-model="form.pickup_time"
               :open.sync="pickupTimeOpen"
               :lang="dpConfig"
               type="time"
+              append-to-body
+              :minute-step="15"
               format="hh:mm a"
               placeholder="Pickup time"
               use12h
               input-class="s1-dt-input"
               :disabled="!form.pickup_date"
               :disabled-time="disabledTime"
-              @open="closePicker('date')"
+              @open="onTimePickerOpen"
             />
-            <span class="s1-dt-ico" aria-hidden="true">
+            <span class="s1-dt-ico" aria-hidden="true" @click="openTimePicker">
               <span class="material-symbols-rounded">schedule</span>
             </span>
           </div>
@@ -253,15 +257,18 @@ export default {
       route: "",
       showRoutes: true,
       wait: false,
+      gpsLoading: false,
       carTypes,
       msg: { has: false, type: "", text: "" },
       submitted: false,
       dpConfig: { formatLocale: { firstDayOfWeek: 1 }, monthBeforeYear: false },
       pickupDateOpen: false,
       pickupTimeOpen: false,
+      dateBounds: null,
+      minPickupTimeMs: null,
       form: {
-        pickup_date: "",
-        pickup_time: "",
+        pickup_date: null,
+        pickup_time: null,
         roundtrip: 0,
         cartype: carTypes[0],
         instruction: "",
@@ -286,7 +293,8 @@ export default {
   },
   created() {
     if (this.$route.params.msg) this.msg = this.$route.params.msg;
-    this.restoreForm();
+    this.refreshDateBounds();
+    this.initForm();
   },
   computed: {
     ...mapGetters(["authorized", "user", "opt", "routeData", "client"]),
@@ -301,54 +309,161 @@ export default {
     },
   },
   methods: {
-    togglePickerOpen(field, evt) {
-      const openKey = field === "date" ? "pickupDateOpen" : "pickupTimeOpen";
-      if (!this[openKey]) return;
-      this[openKey] = false;
-      evt.stopPropagation();
-      evt.preventDefault();
+    onDatePickerOpen() {
+      this.pickupTimeOpen = false;
+      this.refreshDateBounds();
     },
-    closePicker(field) {
-      if (field === "date") this.pickupDateOpen = false;
-      else this.pickupTimeOpen = false;
+    onDatePickerClose() {
+      this.refreshMinPickupTime();
+    },
+    onTimePickerOpen() {
+      this.pickupDateOpen = false;
+      this.refreshMinPickupTime();
+    },
+    openTimePicker() {
+      if (!this.form.pickup_date) return;
+      this.pickupTimeOpen = true;
+    },
+    refreshDateBounds() {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const max = new Date(today.getTime() + 5 * 86400000);
+      max.setHours(0, 0, 0, 0);
+      this.dateBounds = { todayMs: today.getTime(), maxMs: max.getTime() };
+    },
+    refreshMinPickupTime() {
+      const pd = this.form.pickup_date;
+      if (!pd) {
+        this.minPickupTimeMs = null;
+        return;
+      }
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const target = new Date(pd);
+      target.setHours(0, 0, 0, 0);
+      if (today.getTime() !== target.getTime()) {
+        this.minPickupTimeMs = null;
+        return;
+      }
+      const min = new Date();
+      min.setSeconds(0, 0);
+      min.setMilliseconds(0);
+      min.setHours(min.getHours() + 1);
+      this.minPickupTimeMs = min.getTime();
     },
     toggleService(c) {
       const i = this.form.services.indexOf(c);
       i === -1 ? this.form.services.push(c) : this.form.services.splice(i, 1);
     },
     disabledDate(date) {
-      const today = new Date(); today.setHours(0,0,0,0); date.setHours(0,0,0,0);
-      return today > date || date > new Date(today.getTime() + 5 * 86400000);
+      if (!this.dateBounds) this.refreshDateBounds();
+      const d = new Date(date);
+      d.setHours(0, 0, 0, 0);
+      const ms = d.getTime();
+      return ms < this.dateBounds.todayMs || ms > this.dateBounds.maxMs;
     },
     disabledTime(date) {
-      const today = new Date(), target = new Date(this.form.pickup_date);
-      today.setHours(0,0,0,0); target.setHours(0,0,0,0);
-      if (today.getTime() === target.getTime()) {
-        const min = new Date(); min.setSeconds(0,0); min.setHours(min.getHours()+1);
-        date.setSeconds(0,0); return date < min;
-      }
-      return false;
+      if (this.minPickupTimeMs == null) return false;
+      const d = new Date(date);
+      d.setSeconds(0, 0);
+      d.setMilliseconds(0);
+      return d.getTime() < this.minPickupTimeMs;
+    },
+    getAutocompleteComponent(id) {
+      const ref = this.$refs[`transitPoint-${id}`];
+      return Array.isArray(ref) ? ref[0] : ref;
+    },
+    getAutocompleteInput(id) {
+      const comp = this.getAutocompleteComponent(id);
+      return comp?.$refs?.input || null;
+    },
+    setAutocompleteValue(id, value) {
+      this.$nextTick(() => {
+        const input = this.getAutocompleteInput(id);
+        if (input) input.value = value || "";
+      });
+    },
+    getPlaceLatLng(place) {
+      const loc = place?.geometry?.location;
+      if (!loc) return null;
+      const lat = typeof loc.lat === "function" ? loc.lat() : loc.lat;
+      const lng = typeof loc.lng === "function" ? loc.lng() : loc.lng;
+      if (lat == null || lng == null || Number.isNaN(Number(lat)) || Number.isNaN(Number(lng))) return null;
+      return { lat: Number(lat), lng: Number(lng) };
+    },
+    normalizePlace(place) {
+      const latLng = this.getPlaceLatLng(place);
+      if (!latLng) return null;
+      return {
+        ...place,
+        formatted_address: place.formatted_address || "",
+        address_components: place.address_components || [],
+        geometry: {
+          location: {
+            lat: () => latLng.lat,
+            lng: () => latLng.lng,
+          },
+        },
+      };
     },
     setPlace(place, id) {
-      if (!place.geometry) return;
+      const normalized = this.normalizePlace(place);
+      if (!normalized) return;
       const w = this.waypointFields.find(w => w.id === id);
-      if (w) {
-        w.point = place;
-        this.center = { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() };
+      if (!w) return;
+      this.$set(w, "point", normalized);
+      const latLng = this.getPlaceLatLng(normalized);
+      this.center = { lat: latLng.lat, lng: latLng.lng };
+      if (normalized.formatted_address) {
+        this.setAutocompleteValue(id, normalized.formatted_address);
       }
     },
     resetPlace(id) {
       const w = this.waypointFields.find(w => w.id === id);
       if (w) {
-        w.point = null;
-        this.$refs[`transitPoint-${id}`][0].$refs.input.value = "";
+        this.$set(w, "point", null);
+        this.setAutocompleteValue(id, "");
       }
     },
     focusLocation(id) {
-      const ref = this.$refs[`transitPoint-${id}`];
-      if (ref?.[0]?.$refs?.input) ref[0].$refs.input.focus();
+      const input = this.getAutocompleteInput(id);
+      if (input) input.focus();
     },
     updateRoute(route) { this.route = route; this.wait = false; clearTimeout(this._waitTimeout); },
+    initForm() {
+      if (this.$route.query.fresh === "1") {
+        this.$store.commit("setRouteData", null);
+        this.resetForm();
+        this.$router.replace({ path: "/ride/step-1" }).catch(() => {});
+        return;
+      }
+      this.restoreForm();
+    },
+    resetForm() {
+      this.waypointsLocation = [];
+      this.waypointFields = [{ id: "id-1", point: null }, { id: "id-2", point: null }];
+      this.route = "";
+      this.wait = false;
+      this.gpsLoading = false;
+      this.submitted = false;
+      this.pickupDateOpen = false;
+      this.pickupTimeOpen = false;
+      this.minPickupTimeMs = null;
+      this.msg = { has: false, type: "", text: "" };
+      this.form = {
+        pickup_date: null,
+        pickup_time: null,
+        roundtrip: 0,
+        cartype: this.carTypes[0],
+        instruction: "",
+        services: [],
+      };
+      this.$nextTick(() => {
+        this.setAutocompleteValue("id-1", "");
+        this.setAutocompleteValue("id-2", "");
+      });
+      if (this.$v) this.$v.$reset();
+    },
     restoreForm() {
       if (!this.routeData) return;
       const d = { ...this.routeData.formData, ...this.routeData.addData };
@@ -356,6 +471,15 @@ export default {
       if (d.roundtrip !== undefined) this.form.roundtrip = d.roundtrip;
       if (d.instruction) this.form.instruction = d.instruction;
       if (d.services) this.form.services = Object.keys(d.services).filter(s => d.services[s]);
+
+      if (d.orderAt) {
+        const orderAt = new Date(d.orderAt);
+        if (!Number.isNaN(orderAt.getTime())) {
+          this.form.pickup_date = new Date(orderAt.getFullYear(), orderAt.getMonth(), orderAt.getDate());
+          this.form.pickup_time = new Date(orderAt);
+          this.refreshMinPickupTime();
+        }
+      }
 
       const ets = d.p_dat?.ets;
       if (ets && ets.length >= 2) {
@@ -369,34 +493,106 @@ export default {
         this.waypointFields[1].point = makePoint(ets[ets.length - 1]);
         this.center = { ...ets[0].position };
         this.$nextTick(() => {
-          const r0 = this.$refs[`transitPoint-${this.waypointFields[0].id}`];
-          if (r0?.[0]?.$refs?.input) r0[0].$refs.input.value = ets[0].location || '';
-          const r1 = this.$refs[`transitPoint-${this.waypointFields[1].id}`];
-          if (r1?.[0]?.$refs?.input) r1[0].$refs.input.value = ets[ets.length - 1].location || '';
+          this.setAutocompleteValue(this.waypointFields[0].id, ets[0].location || "");
+          this.setAutocompleteValue(this.waypointFields[1].id, ets[ets.length - 1].location || "");
         });
       }
     },
     useGpsLocation() {
+      this.msg = { has: false, type: "", text: "" };
+
       if (!navigator.geolocation) {
-        this.focusLocation(this.waypointFields[1].id);
+        this.msg = { has: true, type: "danger", text: "Geolocation is not supported in this browser." };
         return;
       }
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude: lat, longitude: lng } = pos.coords;
-          const geocoder = new window.google.maps.Geocoder();
-          geocoder.geocode({ location: { lat, lng } }, (results, status) => {
-            if (status !== 'OK' || !results[0]) return;
-            const place = results[0];
-            const idx = this.waypointFields[0].point ? 1 : 0;
-            const target = this.waypointFields[idx];
-            this.setPlace(place, target.id);
-            const ref = this.$refs[`transitPoint-${target.id}`];
-            if (ref?.[0]?.$refs?.input) ref[0].$refs.input.value = place.formatted_address;
-          });
-        },
-        () => this.focusLocation(this.waypointFields[1].id)
-      );
+      if (!window.google?.maps?.Geocoder) {
+        this.msg = { has: true, type: "danger", text: "Google Maps is still loading. Please try again in a moment." };
+        return;
+      }
+
+      const requestId = (this._gpsRequestId = (this._gpsRequestId || 0) + 1);
+      this.gpsLoading = true;
+
+      const finish = () => {
+        if (requestId !== this._gpsRequestId) return;
+        this.gpsLoading = false;
+      };
+
+      const applyPosition = (pos) => {
+        if (requestId !== this._gpsRequestId) return;
+        this.msg = { has: false, type: "", text: "" };
+        const { latitude: lat, longitude: lng } = pos.coords;
+        const geocoder = new window.google.maps.Geocoder();
+        geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+          finish();
+          if (requestId !== this._gpsRequestId) return;
+          if (status !== "OK" || !results?.[0]) {
+            this.msg = { has: true, type: "danger", text: "Could not resolve your current address. Please enter it manually." };
+            return;
+          }
+          const idx = this.waypointFields[0].point ? 1 : 0;
+          this.setPlace(results[0], this.waypointFields[idx].id);
+        });
+      };
+
+      const showGpsError = (err) => {
+        if (requestId !== this._gpsRequestId) return;
+        finish();
+        const denied = err?.code === 1;
+        this.msg = {
+          has: true,
+          type: "danger",
+          text: denied
+            ? "Location permission denied. Allow location access or enter the address manually."
+            : "Could not get your current location. Please enter the address manually.",
+        };
+      };
+
+      const tryGetPosition = (highAccuracy, isRetry = false) => {
+        navigator.geolocation.getCurrentPosition(
+          applyPosition,
+          (err) => {
+            if (requestId !== this._gpsRequestId) return;
+            if (err?.code === 1) {
+              showGpsError(err);
+              return;
+            }
+            if (!isRetry) {
+              tryGetPosition(!highAccuracy, true);
+              return;
+            }
+            showGpsError(err);
+          },
+          {
+            enableHighAccuracy: highAccuracy,
+            timeout: highAccuracy ? 20000 : 12000,
+            maximumAge: 120000,
+          }
+        );
+      };
+
+      const startLookup = () => {
+        if (requestId !== this._gpsRequestId) return;
+        tryGetPosition(false);
+      };
+
+      if (navigator.permissions?.query) {
+        navigator.permissions.query({ name: "geolocation" }).then((result) => {
+          if (requestId !== this._gpsRequestId) return;
+          if (result.state === "denied") {
+            finish();
+            this.msg = {
+              has: true,
+              type: "danger",
+              text: "Location permission denied. Allow location access or enter the address manually.",
+            };
+            return;
+          }
+          startLookup();
+        }).catch(() => startLookup());
+      } else {
+        startLookup();
+      }
     },
     handleSubmit() {
       this.submitted = true;
@@ -433,7 +629,13 @@ export default {
   },
   watch: {
     "form.pickup_date"(v) {
-      if (!v) this.pickupTimeOpen = false;
+      if (!v) {
+        this.pickupTimeOpen = false;
+        this.form.pickup_time = null;
+        this.minPickupTimeMs = null;
+        return;
+      }
+      this.refreshMinPickupTime();
     },
     waypointFields: {
       deep: true,
@@ -441,12 +643,14 @@ export default {
         const locs = [];
         this.waypointFields.forEach(w => {
           if (w.point) {
+            const latLng = this.getPlaceLatLng(w.point);
+            if (!latLng) return;
             const city = getCity(w.point);
             locs.push({
               id: w.id, location: w.point.formatted_address,
               utc_offset_minutes: city.utc_offset_minutes,
               city: city.name.join(", "),
-              position: { lat: w.point.geometry.location.lat(), lng: w.point.geometry.location.lng() },
+              position: { lat: latLng.lat, lng: latLng.lng },
               stopover: false,
             });
           }
@@ -517,9 +721,14 @@ $tog-off-bg: #F4F4F4;
   min-width: 0;
   width: 100%;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
 
   @media (max-width: 480px) { padding: 20px 16px; border-radius: 20px; }
+}
+
+.s1-row2--dt {
+  position: relative;
+  z-index: 3;
 }
 
 .s1-card-title {
@@ -697,7 +906,8 @@ $tog-off-bg: #F4F4F4;
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: pointer;
   z-index: 2;
   color: $text-dark;
 

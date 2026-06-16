@@ -31,6 +31,7 @@
                   v-mask="'+1 ##########'"
                   placeholder="+1 ##########"
                   id="user-login"
+                  @paste="onPhonePaste"
                   :class="{ 'is-invalid': submitted && $v.step1.login.$error }"
                 />
                 <div
@@ -371,6 +372,7 @@
 
 <script>
 import Auth from "@/views/layouts/auth";
+import { formatLogin, pasteAsLoginDisplay } from "@/helpers/phone";
 import axios from "axios";
 import urls from "@/urls";
 import Swal from "sweetalert2";
@@ -502,6 +504,10 @@ export default {
   },
   created() {},
   methods: {
+    onPhonePaste(evt) {
+      const formatted = pasteAsLoginDisplay(evt);
+      if (formatted) this.step1.login = formatted;
+    },
     moveToNextField(e, ref) {
       if (e.data) {
         this.$refs[ref].focus();
@@ -546,7 +552,7 @@ export default {
           const response = await axios({
             method: "post",
             url: urls.URL_USER_SIGNUP_1, // client/signup
-            data: { login: this.step1.login },
+            data: { login: formatLogin(this.step1.login) },
           });
           // console.log("1 sendCode(), response: ", response);
 

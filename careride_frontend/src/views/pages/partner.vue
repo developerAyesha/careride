@@ -19,7 +19,7 @@
                   <label for="login" class="required">Phone Number</label>
                   <div class="input-group input-group-merge">
                     <input v-model="step1.login" v-mask="'+1 ##########'" placeholder="+1 ##########" type="text"
-                      id="login" class="form-control" :class="{
+                      id="login" class="form-control" @paste="onPhonePaste" :class="{
                         'is-invalid': submitted && $v.step1.login.$error,
                       }" />
                     <!-- <div class="text-muted w-100">e.g "+1 343 554 45 24"</div> -->
@@ -574,6 +574,7 @@ import "vue-slider-component/theme/default.css";
 import TermsModal from "@/components/terms-modal";
 import AgreementsModal from "@/components/agreements-modal";
 import PrivacyPolicyModal from "@/components/privacy-policy-modal";
+import { pasteAsLoginDisplay } from "@/helpers/phone";
 
 export default {
   metaInfo() {
@@ -804,6 +805,10 @@ export default {
     },
   },
   methods: {
+    onPhonePaste(evt) {
+      const formatted = pasteAsLoginDisplay(evt);
+      if (formatted) this.step1.login = formatted;
+    },
     backStep() {
       this.step = 1;
       this.msg = {
