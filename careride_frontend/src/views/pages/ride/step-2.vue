@@ -161,7 +161,7 @@ export default {
         genders: [
           { key: "m", label: "Male", icon: MaleIcon },
           { key: "f", label: "Female", icon: FemaleIcon },
-          { key: "nb", label: "Non binary", icon: NonBinaryIcon },
+          { key: "n", label: "Non binary", icon: NonBinaryIcon },
           { key: "x", label: "Prefer not to say", icon: PreferNotIcon },
           ],
 form: {

@@ -65,6 +65,7 @@
               placeholder="Pickup date"
               format="MM-DD-YYYY"
               input-class="s1-dt-input"
+              :input-props="{ readonly: true }"
               :disabled-date="disabledDate"
               @open="onDatePickerOpen"
               @close="onDatePickerClose"
@@ -85,6 +86,7 @@
               placeholder="Pickup time"
               use12h
               input-class="s1-dt-input"
+              :input-props="{ readonly: true }"
               :disabled="!form.pickup_date"
               :disabled-time="disabledTime"
               @open="onTimePickerOpen"
