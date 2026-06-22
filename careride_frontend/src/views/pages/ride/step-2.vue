@@ -51,17 +51,17 @@
        <div class="s2-row3 mt-12">
           <div class="s2-field">
             <label class="s2-label">First name <span class="s2-req">*</span></label>
-            <input v-model="form.patient.first" class="s2-inp" placeholder="Enter first name" maxlength="64" />
+            <input v-model="form.patient.first" class="s2-inp" placeholder="Enter first name" maxlength="64" @focus="onIosFieldFocus" @blur="onIosFieldBlur" />
             <div class="s2-err" v-if="submitted && $v.form.patient.first.$error">Required</div>
           </div>
           <div class="s2-field">
             <label class="s2-label">Last name <span class="s2-req">*</span></label>
-            <input v-model="form.patient.last" class="s2-inp" placeholder="Enter last name" maxlength="64" />
+            <input v-model="form.patient.last" class="s2-inp" placeholder="Enter last name" maxlength="64" @focus="onIosFieldFocus" @blur="onIosFieldBlur" />
             <div class="s2-err" v-if="submitted && $v.form.patient.last.$error">Required</div>
           </div>
           <div class="s2-field">
             <label class="s2-label">Phone number <span class="s2-req">*</span></label>
-            <input v-model="form.patient.phone" class="s2-inp" placeholder="Enter phone number" maxlength="16" type="tel" inputmode="numeric" @input="form.patient.phone = form.patient.phone.replace(/\D/g, '')" />
+            <input v-model="form.patient.phone" class="s2-inp" placeholder="Enter phone number" maxlength="16" type="tel" inputmode="numeric" @input="form.patient.phone = form.patient.phone.replace(/\D/g, '')" @focus="onIosFieldFocus" @blur="onIosFieldBlur" />
             <div class="s2-err" v-if="submitted && $v.form.patient.phone.$error">Required</div>
           </div>
         </div>
@@ -88,15 +88,15 @@
         <div class="s2-row2 mt-12">
           <div class="s2-field">
             <label class="s2-label">Weight <span class="s2-req">*</span></label>
-            <input v-model.number="form.weight" class="s2-inp" type="number" placeholder="LBS" min="0" max="999" />
+            <input v-model.number="form.weight" class="s2-inp" type="number" placeholder="LBS" min="0" max="999" @focus="onIosFieldFocus" @blur="onIosFieldBlur" />
             <div class="s2-err" v-if="submitted && $v.form.weight.$error">Required</div>
             <span class="s2-hint">Needed for transport safety and equipment planning</span>
           </div>
           <div class="s2-field">
             <label class="s2-label">Height <span class="s2-req">*</span></label>
             <div class="s2-height-row">
-              <input v-model.number="form.height_ft" class="s2-inp" type="number" placeholder="Ft" min="0" max="9" />
-              <input v-model.number="form.height_in" class="s2-inp" type="number" placeholder="In" min="0" max="11" />
+              <input v-model.number="form.height_ft" class="s2-inp" type="number" placeholder="Ft" min="0" max="9" @focus="onIosFieldFocus" @blur="onIosFieldBlur" />
+              <input v-model.number="form.height_in" class="s2-inp" type="number" placeholder="In" min="0" max="11" @focus="onIosFieldFocus" @blur="onIosFieldBlur" />
             </div>
             <div class="s2-err" v-if="submitted && ($v.form.height_ft.$error || $v.form.height_in.$error)">Required</div>
             <span class="s2-hint">Used to ensure safe vehicle and assistance matching</span>
@@ -107,7 +107,7 @@
       </div>
 
       <!-- Right: Map -->
-      <div class="s2-map-card">
+      <div class="s2-map-card" :class="{ 'bk-map-collapsed': collapseMapOnIos }">
         <GmapMap
           :center="center"
           :zoom="mapZoom"
@@ -151,8 +151,11 @@ import {
   PreferNotIcon
 } from "@/assets/icons";
 
+import { iosFormMixin } from "@/helpers/ios-form";
+
 export default {
   metaInfo() { return { title: this.$appConfig.title + " | Book a Ride – Patient Info" }; },
+  mixins: [iosFormMixin],
   components: { BookingLayout, BkSteps, DirectionsRenderer, MaleIcon, FemaleIcon, NonBinaryIcon,PreferNotIcon  },
   data() {
     return {
@@ -220,6 +223,9 @@ validations() {
     },
     mapZoom() {
       return this.waypoints.length >= 2 ? 10 : 5;
+    },
+    collapseMapOnIos() {
+      return this.isTouchMobile() && this._iosFieldFocused;
     },
   },
   methods: {

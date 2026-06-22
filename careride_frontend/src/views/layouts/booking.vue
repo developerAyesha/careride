@@ -180,6 +180,7 @@ export default {
 
 <style lang="scss">
 @import "@/assets/scss/booking-step-actions";
+@import "@/assets/scss/ios-booking-form";
 
 /* ── Global overrides for booking pages (not scoped) ── */
 .bk-layout .pac-container { z-index: 9999 !important; }

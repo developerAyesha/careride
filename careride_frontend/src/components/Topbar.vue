@@ -895,6 +895,8 @@ export default {
         console.log("Cancel order, Error: ", error);
       } finally {
         await this.$store.dispatch("fetchUserDataCustomer");
+
+        this.proceed = this.proceed.filter(pid => pid !== id);
         this.$scrollToTop();
         this.wait = false;
       }

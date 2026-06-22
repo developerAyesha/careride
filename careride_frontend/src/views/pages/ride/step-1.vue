@@ -18,8 +18,8 @@
               :ref="`transitPoint-${waypointFields[0].id}`"
               placeholder="Pickup location"
               @place_changed="setPlace($event, waypointFields[0].id)"
-              @focus.native="focuses.pickup = true"
-              @blur.native="focuses.pickup = false"
+              @focus.native="onLocationFocus('pickup', waypointFields[0].id)"
+              @blur.native="onLocationBlur('pickup')"
             />
           </div>
           <button v-if="waypointFields[0].point" class="s1-clear" @click="resetPlace(waypointFields[0].id)" type="button">
@@ -44,8 +44,8 @@
                 :ref="`transitPoint-${waypointFields[1].id}`"
                 placeholder="Drop location"
                 @place_changed="setPlace($event, waypointFields[1].id)"
-                @focus.native="focuses.drop = true"
-                @blur.native="focuses.drop = false"
+                @focus.native="onLocationFocus('drop', waypointFields[1].id)"
+                @blur.native="onLocationBlur('drop')"
               />
             </div>
           </div>
@@ -165,6 +165,8 @@
               class="s1-inp--text"
               :placeholder="instructionPlaceholder"
               maxlength="500"
+              @focus="onIosFieldFocus"
+              @blur="onIosFieldBlur"
             />
           </div>
           <div class="s1-field" v-if="optServices.length">
@@ -192,7 +194,7 @@
       </div>
 
       <!-- Map card -->
-      <div class="s1-map-card">
+      <div class="s1-map-card" :class="{ 'bk-map-collapsed': collapseMapOnIos }">
         <GmapMap
           :center="center"
           :zoom="5"
@@ -225,6 +227,7 @@ import BkSteps from "@/components/booking/BkSteps";
 import { mapGetters } from "vuex";
 import DirectionsRenderer from "@/components/DirectionsRenderer";
 import { getCity, getCityLabel } from "@/helpers";
+import { iosFormMixin } from "@/helpers/ios-form";
 import { carTypes, mapFields } from "@/components/data";
 import DatePicker from "vue2-datepicker";
 import { required } from "vuelidate/lib/validators";
@@ -243,6 +246,7 @@ import {
 
 export default {
   metaInfo() { return { title: this.$appConfig.title + " | Book a Ride" }; },
+  mixins: [iosFormMixin],
   components: {
     BookingLayout, BkSteps, DirectionsRenderer, DatePicker,
     PickupIcon, DropIcon, OneWayIcon, RoundTripIcon,
@@ -309,8 +313,27 @@ export default {
     canSubmit() {
       return this.waypointsLocation.length >= 2;
     },
+    collapseMapOnIos() {
+      if (!this.isTouchMobile()) return false;
+      return (
+        this._iosFieldFocused ||
+        this.focuses.pickup ||
+        this.focuses.drop ||
+        this.pickupDateOpen ||
+        this.pickupTimeOpen
+      );
+    },
   },
   methods: {
+    onLocationFocus(which, id) {
+      this.focuses[which] = true;
+      this._iosFieldFocused = true;
+      this.$nextTick(() => this.scrollFieldIntoView(this.getAutocompleteInput(id)));
+    },
+    onLocationBlur(which) {
+      this.focuses[which] = false;
+      this.onIosFieldBlur();
+    },
     onDatePickerOpen() {
       this.pickupTimeOpen = false;
       this.refreshDateBounds();
@@ -794,6 +817,10 @@ $tog-off-bg: #F4F4F4;
     min-width: 0;
     width: 100%;
     &::placeholder { color: $text-muted; }
+
+    @media (max-width: 768px) {
+      font-size: 16px;
+    }
   }
 }
 
@@ -909,6 +936,10 @@ $tog-off-bg: #F4F4F4;
       opacity: 0.55 !important;
       cursor: not-allowed !important;
     }
+
+    @media (max-width: 768px) {
+      font-size: 16px !important;
+    }
   }
 
   ::v-deep .mx-icon-calendar,
@@ -1006,6 +1037,10 @@ $tog-off-bg: #F4F4F4;
     background: #fff;
   }
   &::placeholder { color: $text-muted; white-space: pre-line; }
+
+  @media (max-width: 768px) {
+    font-size: 16px;
+  }
 }
 
 /* ─── 2-col row ─────────────────────────────────── */

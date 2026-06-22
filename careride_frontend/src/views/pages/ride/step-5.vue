@@ -163,7 +163,7 @@
           </div>
 
           <!-- Real Stripe Payment Element -->
-          <div v-if="loadedStripe">
+          <div v-if="loadedStripe" ref="stripeWrap" class="s5-stripe-wrap">
             <stripe-element-payment
               ref="paymentRef"
               :pk="pk"
@@ -172,7 +172,7 @@
               :confirm-params="confirmParams"
               locale="en"
               @error="handleStripeError"
-              @element-ready="wait = false"
+              @element-ready="onStripeElementReady"
             />
           </div>
 
@@ -231,9 +231,11 @@ import {
 import { StripeElementPayment } from "@vue-stripe/vue-stripe";
 import axios from "axios";
 import urls from "@/urls";
+import { iosFormMixin, scrollFieldIntoView, isTouchMobile } from "@/helpers/ios-form";
 
 export default {
   metaInfo() { return { title: this.$appConfig.title + " | Book a Ride – Payment" }; },
+  mixins: [iosFormMixin],
   components: {
     BookingLayout,
     BkSteps,
@@ -338,6 +340,12 @@ export default {
     payOrder() {
       this.msg = { has: false, type: "", text: "" };
       this.$refs.paymentRef.submit();
+    },
+    onStripeElementReady() {
+      this.wait = false;
+      if (isTouchMobile() && this.$refs.stripeWrap) {
+        scrollFieldIntoView(this.$refs.stripeWrap);
+      }
     },
     handleStripeError(err) { this.msg = { has: true, type: "danger", text: err.message }; },
     confirmCancel(order) {
