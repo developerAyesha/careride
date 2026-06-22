@@ -1,0 +1,42 @@
+// iOS / touch input fixes for booking ride steps (1–6)
+.bk-layout {
+  -webkit-text-size-adjust: 100%;
+
+  @media (max-width: 768px) {
+    input,
+    textarea,
+    select,
+    .mx-input {
+      font-size: 16px !important;
+    }
+  }
+}
+
+// Collapse map while keyboard is open (steps 1 & 2)
+@media (max-width: 900px) {
+  .s1-map-card.bk-map-collapsed,
+  .s2-map-card.bk-map-collapsed {
+    min-height: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-width: 0 !important;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+
+    .vue-map-container,
+    .vue-map {
+      min-height: 0 !important;
+      height: 0 !important;
+    }
+  }
+}
+
+.pac-container {
+  touch-action: manipulation;
+}
+
+.s5-stripe-wrap {
+  touch-action: manipulation;
+}
