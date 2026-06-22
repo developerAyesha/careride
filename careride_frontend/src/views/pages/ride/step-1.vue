@@ -344,6 +344,21 @@ export default {
     onTimePickerOpen() {
       this.pickupDateOpen = false;
       this.refreshMinPickupTime();
+      this.$nextTick(() => {
+        setTimeout(() => this.fixIosTimePickerCells(), 0);
+      });
+    },
+    fixIosTimePickerCells() {
+      if (!/iPad|iPhone|iPod/.test(navigator.userAgent)) return;
+      document.querySelectorAll(".mx-datepicker-popup .mx-time-column .mx-time-item").forEach((el) => {
+        if (el._iosTouchFixed) return;
+        el._iosTouchFixed = true;
+        el.addEventListener("touchend", this._onIosTimeItemTouchEnd, { passive: false });
+      });
+    },
+    _onIosTimeItemTouchEnd(e) {
+      e.preventDefault();
+      if (e.currentTarget) e.currentTarget.click();
     },
     openTimePicker() {
       if (!this.form.pickup_date) return;
@@ -947,6 +962,11 @@ $tog-off-bg: #F4F4F4;
   ::v-deep .mx-icon-time {
     display: none !important;
   }
+
+  ::v-deep .mx-time-column .mx-time-item {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
 .s1-dt-ico {
@@ -1197,4 +1217,12 @@ $tog-off-bg: #F4F4F4;
 /* ─── Spacing helpers ───────────────────────────── */
 .mt-16 { margin-top: 16px; }
 .mt-8  { margin-top: 8px; }
+</style>
+
+<style lang="scss">
+/* Time popup uses append-to-body — lives outside scoped component tree */
+.mx-datepicker-popup .mx-time-column .mx-time-item {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
 </style>
