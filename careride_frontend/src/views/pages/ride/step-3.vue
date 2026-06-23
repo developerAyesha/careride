@@ -128,7 +128,7 @@
         @click.prevent="handleSubmit"
       >
         <span v-if="wait" class="s3-spinner-sm" />
-        Submit Ride Request <span class="material-symbols-rounded">arrow_forward</span>
+        Submit Request <span class="material-symbols-rounded">arrow_forward</span>
       </button>
     </div>
 
