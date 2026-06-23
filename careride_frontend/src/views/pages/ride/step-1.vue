@@ -42,7 +42,7 @@
                 :selectFirstOnEnter="true"
                 :setFieldsTo="mapFields"
                 :ref="`transitPoint-${waypointFields[1].id}`"
-                placeholder="Drop location"
+                placeholder="Drop-Off location"
                 @place_changed="setPlace($event, waypointFields[1].id)"
                 @focus.native="onLocationFocus('drop', waypointFields[1].id)"
                 @blur.native="onLocationBlur('drop')"
@@ -831,7 +831,7 @@ $tog-off-bg: #F4F4F4;
     padding: 0 !important;
     min-width: 0;
     width: 100%;
-    &::placeholder { color: $text-muted; }
+    &::placeholder { color: $text-dark; }
 
     @media (max-width: 768px) {
       font-size: 16px;
@@ -943,7 +943,7 @@ $tog-off-bg: #F4F4F4;
     }
 
     &::placeholder {
-      color: $text-muted !important;
+      color: $text-dark !important;
     }
 
     &:disabled,

@@ -128,7 +128,7 @@
         @click.prevent="handleSubmit"
       >
         <span v-if="wait" class="s3-spinner-sm" />
-        Submit Ride Request <span class="material-symbols-rounded">arrow_forward</span>
+        Submit Request <span class="material-symbols-rounded">arrow_forward</span>
       </button>
     </div>
 
@@ -144,6 +144,7 @@ import { carTypes } from "@/components/data";
 import axios from "axios";
 import urls from "@/urls";
 import { resolveCityLabel } from "@/helpers";
+import { getApiErrorMessage } from "@/helpers/api-errors";
 
 // Last-resort fallback only if both API calls fail completely
 const RATE = { 1: { base: 80, mile: 5.5 }, 2: { base: 100, mile: 6.5 } };
@@ -314,9 +315,11 @@ export default {
         this.$store.commit("setRouteData", null);
         this.$router.push(`/ride/step-4?id=${orderId}&notified=1`);
       } catch (err) {
-        const status = err.response?.status;
-        const detail = err.response?.data?.detail || err.response?.data?.error || err.message;
-        this.msg = { has: true, type: "danger", text: `Error${status ? ` ${status}` : ""}: ${detail || "Could not submit request."}` };
+        this.msg = {
+          has: true,
+          type: "danger",
+          text: getApiErrorMessage(err, "Could not submit request."),
+        };
       } finally {
         this.wait = false;
       }

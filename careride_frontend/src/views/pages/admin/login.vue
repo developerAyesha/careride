@@ -83,6 +83,7 @@
 
 <script>
 import Auth from "@/views/layouts/auth";
+import { getApiErrorMessage } from "@/helpers/api-errors";
 import { mapActions } from "vuex";
 import { required } from "vuelidate/lib/validators";
 
@@ -143,19 +144,7 @@ export default {
 
           this.trySubmit = false;
         } catch (error) {
-          // console.log("Page login admin, Error: ", error);
-          this.authError = "Incorrect login info";
-
-          if (!error.response) {
-            this.authError = "Error: Network Error";
-          } else {
-            if (error.response?.data?.error && error.response?.status) {
-              this.authError = `Error: ${error.response.status} ${error.response.data.error}`;
-            } else if (error.response?.status || error.response?.statusText) {
-              this.authError = `Error: ${error.response.status} ${error.response.statusText}`;
-            }
-          }
-
+          this.authError = getApiErrorMessage(error, "Incorrect login info");
           this.trySubmit = false;
           this.isAuthError = true;
         }

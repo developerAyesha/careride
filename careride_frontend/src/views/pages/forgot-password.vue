@@ -294,6 +294,7 @@
 
 <script>
 import Auth from "@/views/layouts/auth";
+import { getApiErrorMessage } from "@/helpers/api-errors";
 import { formatLogin, pasteAsLoginDisplay } from "@/helpers/phone";
 import axios from "axios";
 import urls from "@/urls";
@@ -463,16 +464,12 @@ export default {
             this.step = 2;
           }
         } catch (error) {
-          // console.log("Error: ", error);
           this.msg.has = true;
           this.msg.type = "danger";
-          this.msg.text = "Restore password, step 1 error...";
-
-          if (error.response?.data?.error && error.response?.status) {
-            this.msg.text = `Error: ${error.response.status} ${error.response.data.error}`;
-          } else if (error.response?.status || error.response?.statusText) {
-            this.msg.text = `Error: ${error.response.status} ${error.response.statusText}`;
-          }
+          this.msg.text = getApiErrorMessage(
+            error,
+            "Restore password, step 1 error..."
+          );
         } finally {
           this.trySubmit = false;
         }
@@ -522,16 +519,12 @@ export default {
             this.reset_token = response.data.reset_token;
           }
         } catch (error) {
-          // console.log("Error: ", error);
           this.msg.has = true;
           this.msg.type = "danger";
-          this.msg.text = "Restore password, step 2 error...";
-
-          if (error.response?.data?.error && error.response?.status) {
-            this.msg.text = `Error: ${error.response.status} ${error.response.data.error}`;
-          } else if (error.response?.status || error.response?.statusText) {
-            this.msg.text = `Error: ${error.response.status} ${error.response.statusText}`;
-          }
+          this.msg.text = getApiErrorMessage(
+            error,
+            "Restore password, step 2 error..."
+          );
         } finally {
           this.trySubmit = false;
         }
@@ -578,16 +571,12 @@ export default {
             }
           }
         } catch (error) {
-          // console.log("Error: ", error);
           this.msg.has = true;
           this.msg.type = "danger";
-          this.msg.text = "Restore password, step 3 error...";
-
-          if (error.response?.data?.error && error.response?.status) {
-            this.msg.text = `Error: ${error.response.status} ${error.response.data.error}`;
-          } else if (error.response?.status || error.response?.statusText) {
-            this.msg.text = `Error: ${error.response.status} ${error.response.statusText}`;
-          }
+          this.msg.text = getApiErrorMessage(
+            error,
+            "Restore password, step 3 error..."
+          );
         } finally {
           this.trySubmit = false;
         }

@@ -372,6 +372,7 @@
 
 <script>
 import Auth from "@/views/layouts/auth";
+import { getApiErrorMessage } from "@/helpers/api-errors";
 import { formatLogin, pasteAsLoginDisplay } from "@/helpers/phone";
 import axios from "axios";
 import urls from "@/urls";
@@ -564,20 +565,9 @@ export default {
           // this.msg.type = "success";
           // this.msg.text = "Sign up, step 1 succces";
         } catch (error) {
-          // console.log("Error: ", error);
           this.msg.has = true;
           this.msg.type = "danger";
-          this.msg.text = "Sign up, step 1 error...";
-
-          if (!error.response) {
-            this.msg.text = "Error: Network Error";
-          } else {
-            if (error.response?.data?.error && error.response?.status) {
-              this.msg.text = `Error: ${error.response.status} ${error.response.data.error}`;
-            } else if (error.response?.status || error.response?.statusText) {
-              this.msg.text = `Error: ${error.response.status} ${error.response.statusText}`;
-            }
-          }
+          this.msg.text = getApiErrorMessage(error, "Sign up, step 1 error...");
         } finally {
           this.trySubmit = false;
         }
@@ -622,20 +612,9 @@ export default {
             this.token = response.data.token;
           }
         } catch (error) {
-          // console.log("Error: ", error);
           this.msg.has = true;
           this.msg.type = "danger";
-          this.msg.text = "Sign up, step 2 error...";
-
-          if (!error.response) {
-            this.msg.text = "Error: Network Error";
-          } else {
-            if (error.response?.data?.error && error.response?.status) {
-              this.msg.text = `Error: ${error.response.status} ${error.response.data.error}`;
-            } else if (error.response?.status || error.response?.statusText) {
-              this.msg.text = `Error: ${error.response.status} ${error.response.statusText}`;
-            }
-          }
+          this.msg.text = getApiErrorMessage(error, "Sign up, step 2 error...");
         } finally {
           this.trySubmit = false;
         }
@@ -687,20 +666,9 @@ export default {
           // this.msg.type = "success";
           // this.msg.text = "Sign up, step 4 succces";
         } catch (error) {
-          // console.log("Error: ", error);
           this.msg.has = true;
           this.msg.type = "danger";
-          this.msg.text = "Sign up, step 4 error...";
-
-          if (!error.response) {
-            this.msg.text = "Error: Network Error";
-          } else {
-            if (error.response?.data?.error && error.response?.status) {
-              this.msg.text = `Error: ${error.response.status} ${error.response.data.error}`;
-            } else if (error.response?.status || error.response?.statusText) {
-              this.msg.text = `Error: ${error.response.status} ${error.response.statusText}`;
-            }
-          }
+          this.msg.text = getApiErrorMessage(error, "Sign up, step 4 error...");
         } finally {
           this.trySubmit = false;
         }
