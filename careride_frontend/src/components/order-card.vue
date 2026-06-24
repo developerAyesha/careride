@@ -102,8 +102,12 @@
           </div>
         </div>
         <div class="order-info">
-          <div class="order-info-title">BMI</div>
-          <div class="order-info-text">{{ calcBMI(order) }}</div>
+          <div class="order-info-title">Weight</div>
+          <div class="order-info-text">{{ formatWeight(order.weight) }}</div>
+        </div>
+        <div class="order-info">
+          <div class="order-info-title">Height</div>
+          <div class="order-info-text">{{ formatHeight(order.height) }}</div>
         </div>
         <div class="order-info">
           <div class="order-info-title">Accompanied by</div>
@@ -235,18 +239,26 @@ export default {
       return this.escortTypes.find((e) => Number(e.id) === Number(escort))
         .label;
     },
-    calcBMI(order) {
-      // console.log("Number(order.height * 12): ", Number(order.height * 12));
-      // 703 * (Вес(lbs) / (Рост(in))^2)
-      return order.weight &&
-        order.height &&
-        Number(order.weight) > 0 &&
-        Number(order.height) > 0
-        ? Number(
-            703 *
-              (Number(order.weight) / Math.pow(Number(order.height * 12), 2))
-          ).toFixed(2)
-        : " --- ";
+    formatWeight(weight) {
+      const w = Number(weight);
+      if (!w || w <= 0) return "---";
+      return `${w} lbs`;
+    },
+    formatHeight(height) {
+      const h = Number(height);
+      if (!h || h <= 0) return "---";
+
+      // Booking flow stores total inches (step 2)
+      if (h >= 12) {
+        const ft = Math.floor(h / 12);
+        const inches = h % 12;
+        return `${ft} ft ${inches} in`;
+      }
+
+      // Legacy profile-style decimal feet (e.g. 5.83)
+      const ft = Math.floor(h);
+      const inches = Math.round((h - ft) * 12);
+      return `${ft} ft ${inches} in`;
     },
   },
 };
