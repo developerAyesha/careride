@@ -96,9 +96,11 @@
         :class="wide ? 'col-lg-6 col-xl-3' : 'col-xl col-lg-6'"
       >
         <div class="order-info">
-          <div class="order-info-title">Client name</div>
+          <div class="order-info-title">
+            {{ Number(order.whoride) === 1 ? "Passenger name" : "Client name" }}
+          </div>
           <div class="order-info-text">
-            {{ clientName(order) }}
+            {{ Number(order.whoride) === 1 ? passengerName(order) : clientName(order) }}
           </div>
         </div>
         <div class="order-info">
@@ -130,7 +132,7 @@
         </div>
       </div>
       <div
-        v-if="order.contact_first || order.contact_last || order.contact_phone"
+        v-if="Number(order.whoride) === 1 && (order.contact_first || order.contact_last || order.contact_phone)"
         class="order-info-col-2"
         :class="wide ? 'col-lg-6 col-xl-3' : 'col-xl col-lg-6'"
       >
@@ -231,6 +233,13 @@ export default {
       }
 
       return name.replace(/\s/g, "") ? name : "---";
+    },
+    passengerName(order) {
+      const name = [order.contact_first, order.contact_last]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+      return name || "---";
     },
     escortLabel(escort) {
       if (!escort) {

@@ -292,7 +292,18 @@ export default {
           if (digits.length > 16) digits = digits.slice(-16);
           return digits;
         };
-        if (payload.contact && typeof payload.contact === 'object') {
+        const bookingForSomeoneElse =
+          Number(payload.whoride) === 1 &&
+          payload.patient &&
+          typeof payload.patient === 'object';
+
+        if (bookingForSomeoneElse) {
+          payload.contact_first = payload.patient.first || '';
+          payload.contact_last = payload.patient.last || '';
+          const phone = normalizePhone(payload.patient.phone);
+          payload.contact_phone = phone;
+          payload.contact = phone;
+        } else if (payload.contact && typeof payload.contact === 'object') {
           payload.contact_first = payload.contact.first || '';
           payload.contact_last  = payload.contact.last  || '';
           const phone = normalizePhone(payload.contact.phone);
